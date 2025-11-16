@@ -25,7 +25,10 @@
         <header class="gradient-bg text-white p-6">
             <div class="container mx-auto">
                 <div class="flex justify-between items-center">
-                    <h1 class="text-2xl font-bold">Fintrack</h1>
+                    <div>
+                        <h1 class="text-2xl font-bold">Fintrack</h1>
+                        <p class="text-pink-200 text-sm mt-1">Selamat datang, {{ $username }}!</p>
+                    </div>
                     <nav class="flex space-x-4">
                         <a href="#" class="hover:text-pink-200 transition">Dashboard</a>
                         <a href="#" class="hover:text-pink-200 transition">Tables</a>
@@ -35,6 +38,14 @@
                 </div>
             </div>
         </header>
+
+        <!-- Alert Success -->
+        @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold">Success!</strong>
+            <span class="block sm:inline">{{ session('success') }}</span>
+        </div>
+        @endif
 
         <main class="container mx-auto p-6">
             <!-- Display Uang -->

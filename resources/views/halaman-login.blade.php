@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Signup - Fintrack Style</title>
+<title>Login - Fintrack</title>
 <style>
   :root {
     --gradient-start: #9146ff;
@@ -19,6 +19,7 @@
     --button-bg-hover: #7e56da;
     --link-color: #9146ff;
     --error-color: #dc2626;
+    --success-color: #16a34a;
   }
   * { box-sizing: border-box; }
   body {
@@ -71,9 +72,9 @@
     margin-bottom: 6px;
     font-weight: 600;
   }
-  input[type="email"],
   input[type="password"],
-  input[type="text"] {
+  input[type="text"],
+  input[type="email"] {
     padding: 0.65rem 1rem;
     font-size: 1rem;
     border-radius: 0.375rem;
@@ -81,8 +82,8 @@
     background: var(--input-bg);
     transition: border-color 0.3s ease;
     outline-offset: 2px;
+    width: 100%;
   }
-  input[type="email"]:focus,
   input[type="password"]:focus,
   input[type="text"]:focus {
     border-color: var(--input-focus);
@@ -98,6 +99,7 @@
     cursor: pointer;
     font-size: 1.1rem;
     transition: background-color 0.3s ease;
+    width: 100%;
   }
   button:hover,
   button:focus-visible {
@@ -111,6 +113,8 @@
     text-align: center;
     cursor: pointer;
     user-select: none;
+    text-decoration: none;
+    display: block;
   }
   .toggle-link:hover,
   .toggle-link:focus-visible {
@@ -120,6 +124,41 @@
   .error {
     color: var(--error-color);
     font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  .alert {
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  .alert-success {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: var(--success-color);
+  }
+  .alert-error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: var(--error-color);
+  }
+  .info-box {
+    background-color: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .info-box h3 {
+    margin: 0 0 0.5rem 0;
+    color: #0369a1;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .info-box p {
+    margin: 0.25rem 0;
+    color: #0c4a6e;
+    font-size: 0.8rem;
   }
 </style>
 </head>
@@ -128,48 +167,48 @@
 <header>Fintrack</header>
 
 <main>
-  <section id="signup-section">
-    <h2>Create New Account</h2>
-    <form id="signup-form" novalidate>
-      <label for="signup-name">Username</label>
-      <input type="text" id="signup-name" name="signup-name"  required minlength="2" />
+  <section id="login-section">
+    <h2>Login to Your Account</h2>
+    <!-- Alert Success -->
+    @if(session('success'))
+      <div class="alert alert-success">
+        {{ session('success') }}
+      </div>
+    @endif
 
-      <label for="signup-email">Email Address</label>
-      <input type="email" id="signup-email" name="signup-email" required />
+    <!-- Error Messages -->
+    @if($errors->any())
+      <div class="alert alert-error">
+        <ul style="margin: 0; padding-left: 1rem;">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    @endif
 
-      <label for="signup-password">Password</label>
-      <input type="password" id="signup-password" name="signup-password" required minlength="6" />
+    <form action="{{ route('auth.login') }}" method="POST">
+      @csrf
+      <div>
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="{{ old('username') }}" required />
+      </div>
 
-      <label for="signup-password-confirm">Confirm Password</label>
-      <input type="password" id="signup-password-confirm" name="signup-password-confirm" required minlength="6" />
+      <div>
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" value="{{ old('email') }}" required />
+      </div>
 
-      <button type="submit">Sign Up</button>
+      <div>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+      </div>
+
+      <button type="submit">Log In</button>
     </form>
-    <p class="toggle-link">Already have an account? Log in</p>
+    <a href="{{ route('signup.index') }}" class="toggle-link">Don't have an account? Sign up</a>
   </section>
 </main>
-
-<script>
-
-  document.getElementById('signup-form').addEventListener('submit', e => {
-    e.preventDefault();
-    const name = e.target['signup-name'].value.trim();
-    const email = e.target['signup-email'].value.trim();
-    const password = e.target['signup-password'].value;
-    const confirmPassword = e.target['signup-password-confirm'].value;
-    if (!name || !email || !password || !confirmPassword) {
-      alert('Please fill out all fields to sign up.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      alert('Passwords do not match. Please try again.');
-      return;
-    }
-    alert('Signup successful! (This is a demo alert)');
-    e.target.reset();
-    window.location.href = 'login.html';
-  });
-</script>
 
 </body>
 </html>
