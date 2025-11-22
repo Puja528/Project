@@ -114,12 +114,13 @@ Route::get('/features', function () {
 
 
 // Protected Routes - Standard User
-Route::middleware(['custom.auth'])->group(function () {
+Route::middleware(['auth.custom'])->group(function () {
     Route::get('/home-standard', [HomeStandardController::class, 'index'])->name('home.standard');
-
 
     // Protected Routes - Advance User
     Route::get('/home-advance', [HomeAdvanceController::class, 'index'])->name('home.advance');
+    Route::resource('transactions', TransactionController::class);
+    Route::resource('savings', SavingsController::class);
     Route::resource('budgets', BudgetController::class);
     Route::resource('investments', InvestmentController::class);
     Route::resource('debts', DebtController::class);
@@ -152,3 +153,7 @@ Route::post('/logout', function () {
     session()->flush();
     return redirect()->route('home.guest')->with('success', 'Logout berhasil!');
 })->name('logout');
+
+Route::get('/test', function () {
+    return 'Test page';
+})->middleware('auth.custom');
