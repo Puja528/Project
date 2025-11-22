@@ -91,7 +91,7 @@
                 <div class="text-2xl mb-2">👥</div>
                 <p class="font-semibold text-blue-700">Manage Users</p>
             </a>
-            <a href="{{ route('transactions.index') }}" class="bg-green-50 border border-green-200 p-4 rounded-lg text-center hover:bg-green-100 transition">
+            <a href="{{ route('admin.transactions') }}" class="bg-green-50 border border-green-200 p-4 rounded-lg text-center hover:bg-green-100 transition">
                 <div class="text-2xl mb-2">💰</div>
                 <p class="font-semibold text-green-700">View Transactions</p>
             </a>

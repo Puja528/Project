@@ -1,25 +1,36 @@
 <?php
-// app/Http/Controllers/BudgetController.php
 
 namespace App\Http\Controllers;
 
-use App\Models\Budget;
 use Illuminate\Http\Request;
 
 class BudgetController extends Controller
 {
+    private $budgets = [];
+    private $nextId = 1;
+
+    public function __construct()
+    {
+        $this->budgets = [
+            [
+                'id' => 1,
+                'category' => 'Operasional',
+                'month_year' => '2024-01',
+                'allocated_amount' => 5000000,
+                'used_amount' => 4200000,
+                'description' => 'Budget operasional bulanan'
+            ]
+        ];
+        $this->nextId = 2;
+    }
+
     public function index()
     {
         if (!session('logged_in') || session('user_type') !== 'advance') {
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
-        $budgets = Budget::latest()->get();
-
-        return view('pages.budgets.index', [
-            'budgets' => $budgets,
-            'categories' => Budget::getCategories()
-        ]);
+        return view('pages.budgets.index', ['budgets' => $this->budgets]);
     }
 
     public function create()
@@ -28,9 +39,7 @@ class BudgetController extends Controller
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
-        return view('pages.budgets.create', [
-            'categories' => Budget::getCategories()
-        ]);
+        return view('pages.budgets.create', ['categories' => $this->getCategories()]);
     }
 
     public function store(Request $request)
@@ -39,79 +48,36 @@ class BudgetController extends Controller
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
-        $validated = $request->validate([
+        $request->validate([
             'category' => 'required|string',
-            'month_year' => 'required|date_format:Y-m',
+            'month_year' => 'required|string',
             'allocated_amount' => 'required|numeric|min:0',
             'description' => 'nullable|string'
         ]);
 
-        Budget::create([
-            'category' => $validated['category'],
-            'month_year' => $validated['month_year'],
-            'allocated_amount' => $validated['allocated_amount'],
+        $budget = [
+            'id' => $this->nextId++,
+            'category' => $request->category,
+            'month_year' => $request->month_year,
+            'allocated_amount' => $request->allocated_amount,
             'used_amount' => 0,
-            'description' => $validated['description']
-        ]);
+            'description' => $request->description
+        ];
+
+        $this->budgets[] = $budget;
 
         return redirect()->route('budgets.index')->with('success', 'Budget berhasil ditambahkan!');
     }
 
-    public function show($id)
+    private function getCategories()
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        $budget = Budget::findOrFail($id);
-
-        return view('pages.budgets.show', compact('budget'));
-    }
-
-    public function edit($id)
-    {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        $budget = Budget::findOrFail($id);
-
-        return view('pages.budgets.edit', [
-            'budget' => $budget,
-            'categories' => Budget::getCategories()
-        ]);
-    }
-
-    public function update(Request $request, $id)
-    {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        $budget = Budget::findOrFail($id);
-
-        $validated = $request->validate([
-            'category' => 'required|string',
-            'month_year' => 'required|date_format:Y-m',
-            'allocated_amount' => 'required|numeric|min:0',
-            'used_amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string'
-        ]);
-
-        $budget->update($validated);
-
-        return redirect()->route('budgets.index')->with('success', 'Budget berhasil diperbarui!');
-    }
-
-    public function destroy($id)
-    {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        $budget = Budget::findOrFail($id);
-        $budget->delete();
-
-        return redirect()->route('budgets.index')->with('success', 'Budget berhasil dihapus!');
+        return [
+            'operasional' => 'Operasional',
+            'pemasaran' => 'Pemasaran',
+            'gaji' => 'Gaji Karyawan',
+            'investasi' => 'Investasi',
+            'pajak' => 'Pajak',
+            'lainnya' => 'Lainnya'
+        ];
     }
 }

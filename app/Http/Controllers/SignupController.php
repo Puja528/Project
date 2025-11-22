@@ -7,7 +7,7 @@ class SignupController extends Controller
 {
     public function index()
     {
-        return view("halaman-signup");
+        return view("pages.auth.signup");
     }
 
     public function signup(Request $request)

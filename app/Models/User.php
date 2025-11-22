@@ -11,40 +11,19 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'phone'
+        'name',
+        'email',
+        'password',
+        'type',
+        'status',
     ];
 
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    // Relationships
-    public function budgets()
-    {
-        return $this->hasMany(Budget::class);
-    }
-
-    public function transactions()
-    {
-        return $this->hasMany(Transaction::class);
-    }
-
-    public function savings()
-    {
-        return $this->hasMany(Saving::class);
-    }
-
-    public function debts()
-    {
-        return $this->hasMany(Debt::class);
-    }
-
-    public function investments()
-    {
-        return $this->hasMany(Investment::class);
-    }
 }

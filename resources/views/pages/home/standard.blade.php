@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.standard')
 
 @section('title', 'Dashboard Standard - Fintrack')
 

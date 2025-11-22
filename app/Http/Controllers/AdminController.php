@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
@@ -28,39 +30,113 @@ class AdminController extends Controller
     }
 
     public function users()
+{
+    if (!session('logged_in') || session('user_type') !== 'admin') {
+        return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+    }
+
+    $users = User::latest()->get();
+    
+    // Gunakan data dummy sementara untuk menghindari error
+    $stats = [
+        'total_users' => $users->count(),
+        'active_users' => $users->count(), // Asumsikan semua aktif sementara
+        'standard_users' => $users->where('type', 'standard')->count(),
+        'advance_users' => $users->where('type', 'advance')->count(),
+    ];
+
+    // Jika kolom status belum ada, set default active untuk semua user
+    foreach ($users as $user) {
+        if (!isset($user->status)) {
+            $user->status = 'active';
+        }
+        if (!isset($user->type)) {
+            $user->type = 'standard';
+        }
+    }
+
+    return view('pages.admin.users', compact('users', 'stats'));
+}
+
+    public function createUser()
     {
         if (!session('logged_in') || session('user_type') !== 'admin') {
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
-        $users = [
-            [
-                'id' => 1,
-                'name' => 'Budi Santoso',
-                'email' => 'budi@email.com',
-                'type' => 'standard',
-                'status' => 'active',
-                'joined_date' => '2024-01-15'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Sari Dewi',
-                'email' => 'sari@email.com',
-                'type' => 'advance',
-                'status' => 'active',
-                'joined_date' => '2024-01-10'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Ahmad Rizki',
-                'email' => 'ahmad@email.com',
-                'type' => 'standard',
-                'status' => 'inactive',
-                'joined_date' => '2024-01-05'
-            ]
-        ];
+        return view('pages.admin.users-create');
+    }
 
-        return view('pages.admin.users', compact('users'));
+    public function storeUser(Request $request)
+    {
+        if (!session('logged_in') || session('user_type') !== 'admin') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8|confirmed',
+            'type' => 'required|in:standard,advance',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'type' => $request->type,
+            'status' => $request->status,
+        ]);
+
+        return redirect()->route('admin.users')->with('success', 'User berhasil ditambahkan!');
+    }
+
+    public function editUser($id)
+    {
+        if (!session('logged_in') || session('user_type') !== 'admin') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        $user = User::findOrFail($id);
+        return view('pages.admin.users-edit', compact('user'));
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        if (!session('logged_in') || session('user_type') !== 'admin') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'type' => 'required|in:standard,advance',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'type' => $request->type,
+            'status' => $request->status,
+        ]);
+
+        return redirect()->route('admin.users')->with('success', 'User berhasil diperbarui!');
+    }
+
+    public function deleteUser($id)
+    {
+        if (!session('logged_in') || session('user_type') !== 'admin') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return redirect()->route('admin.users')->with('success', 'User berhasil dihapus!');
     }
 
     public function transactions()
@@ -81,7 +157,7 @@ class AdminController extends Controller
             [
                 'id' => 2,
                 'user' => 'Sari Dewi',
-                'type' => 'income',
+                'type' => 'income', 
                 'amount' => 5000000,
                 'category' => 'gaji',
                 'date' => '2024-01-14'
@@ -136,7 +212,7 @@ class AdminController extends Controller
             [
                 'id' => 2,
                 'type' => 'User Growth Report',
-                'period' => 'Januari 2024',
+                'period' => 'Januari 2024', 
                 'total_amount' => null,
                 'generated_at' => '2024-01-31'
             ],
@@ -170,7 +246,7 @@ class AdminController extends Controller
             [
                 'id' => 2,
                 'admin' => 'Admin System',
-                'action' => 'user_registration',
+                'action' => 'user_registration', 
                 'description' => 'New user ahmad@email.com registered',
                 'ip_address' => '192.168.1.101',
                 'created_at' => '2024-01-20 10:15:22'
@@ -197,16 +273,6 @@ class AdminController extends Controller
 
         // Logic untuk update status user
         return back()->with('success', 'Status user berhasil diupdate.');
-    }
-
-    public function deleteUser($id)
-    {
-        if (!session('logged_in') || session('user_type') !== 'admin') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        // Logic untuk delete user
-        return back()->with('success', 'User berhasil dihapus.');
     }
 
     public function generateReport(Request $request)

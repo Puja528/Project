@@ -29,7 +29,17 @@ class AuthController extends Controller
 
     public function index()
     {
-        return view("pages.auth.login");
+        if (session('logged_in')) {
+            if (session('user_type') === 'standard') {
+                return redirect()->route('home.standard');
+            } else if (session('user_type') === 'advance') {
+                return redirect()->route('home.advance');
+            } else if (session('user_type') === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+        }
+
+        return view('pages.auth.login');
     }
 
     public function login(Request $request)

@@ -73,7 +73,7 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium 
                             {{ $transaction['type'] === 'income' ? 'text-green-600' : 'text-red-600' }}">
                             Rp {{ number_format($transaction['amount'], 0, ',', '.') }}
                         </td>

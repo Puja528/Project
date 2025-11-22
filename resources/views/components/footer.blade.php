@@ -6,14 +6,6 @@
                 <p class="text-gray-400">Platform pengelolaan keuangan terbaik untuk UMKM dan individu.</p>
             </div>
             <div>
-                <h4 class="font-semibold mb-4">Tautan Cepat</h4>
-                <ul class="space-y-2 text-gray-400">
-                    <li><a href="{{ route('home') }}" class="hover:text-white transition">Beranda</a></li>
-                    <li><a href="{{ route('features') }}" class="hover:text-white transition">Fitur</a></li>
-                    <li><a href="{{ route('about') }}" class="hover:text-white transition">Tentang</a></li>
-                </ul>
-            </div>
-            <div>
                 <h4 class="font-semibold mb-4">Dukungan</h4>
                 <ul class="space-y-2 text-gray-400">
                     <li><a href="{{ route('contact') }}" class="hover:text-white transition">Kontak</a></li>
