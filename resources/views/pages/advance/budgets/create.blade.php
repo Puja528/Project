@@ -1,86 +1,356 @@
 @extends('layouts.advance')
 
-@section('title', 'Buat Anggaran - Fintrack')
+@section('title', 'Tambah Anggaran Baru - Fintrack')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-white mb-2">Buat Anggaran Baru</h1>
-            <p class="text-gray-400">Rencanakan anggaran bisnis Anda</p>
+    <div class="flex items-center mb-6">
+        <a href="{{ route('advance.budgets.index') }}" class="text-purple-400 hover:text-purple-300 mr-4">
+            <i class="fas fa-arrow-left text-xl"></i>
+        </a>
+        <h1 class="text-3xl font-bold text-white">Tambah Anggaran Baru</h1>
+    </div>
+
+    @if ($errors->any())
+        <div class="bg-red-900 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">
+            <div class="flex items-center mb-2">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <strong>Terjadi kesalahan:</strong>
+            </div>
+            <ul class="list-disc list-inside text-sm">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
+    @endif
 
-        <div class="bg-gray-800 rounded-2xl p-6 card-shadow border border-gray-700">
-            <form action="{{ route('budgets.store') }}" method="POST">
-                @csrf
-                
-                <div class="grid gap-6">
-                    <!-- Kategori -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Kategori *</label>
-                        <select name="category" required
-                                class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent transition text-white">
-                            <option value="">Pilih Kategori</option>
-                            @foreach($categories as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+    <!-- Form Create Anggaran -->
+    <div class="bg-gray-800 rounded-2xl p-6 card-shadow border border-gray-700 mb-8 max-w-2xl mx-auto">
+        <form action="{{ route('advance.budgets.store') }}" method="POST">
+            @csrf
 
-                    <!-- Periode dan Jumlah -->
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Periode (YYYY-MM) *</label>
-                            <input type="text" name="month_year" required
-                                   class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent transition text-white"
-                                   placeholder="2024-01">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Jumlah Alokasi (Rp) *</label>
-                            <input type="number" name="allocated_amount" required min="0"
-                                   class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent transition text-white"
-                                   placeholder="5000000">
-                        </div>
-                    </div>
-
-                    <!-- Deskripsi -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Deskripsi</label>
-                        <textarea name="description" rows="3"
-                                  class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent transition text-white"
-                                  placeholder="Deskripsi anggaran (opsional)"></textarea>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-700">
-                    <a href="{{ route('budgets.index') }}" 
-                       class="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg font-semibold hover:bg-gray-700 transition">
-                        Batal
-                    </a>
-                    <button type="submit" 
-                            class="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition">
-                        Simpan Anggaran
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Tips Budgeting -->
-        <div class="mt-6 bg-purple-900 border border-purple-700 rounded-lg p-4">
-            <div class="flex items-start">
-                <svg class="w-5 h-5 text-purple-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
+            <div class="grid gap-6">
+                <!-- Nama Anggaran -->
                 <div>
-                    <h3 class="text-sm font-semibold text-purple-300">Tips Budgeting Bisnis</h3>
-                    <p class="text-sm text-purple-200 mt-1">
-                        Alokasikan 50-60% untuk operational expenses, 20-30% untuk growth & investment, 
-                        dan 10-20% untuk contingency fund. Review anggaran bulanan untuk optimalisasi.
-                    </p>
+                    <label for="budget_name" class="block text-gray-300 mb-2 font-semibold">
+                        Nama Anggaran *
+                    </label>
+                    <input type="text"
+                           id="budget_name"
+                           name="budget_name"
+                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+                           value="{{ old('budget_name') }}"
+                           placeholder="Contoh: Anggaran Bulanan, Liburan Akhir Tahun, dll."
+                           required>
+                    @error('budget_name')
+                        <p class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ $message }}
+                        </p>
+                    @enderror
                 </div>
+
+                <!-- Kategori -->
+                <div>
+                    <label for="category" class="block text-gray-300 mb-2 font-semibold">
+                        Kategori *
+                    </label>
+                    <select id="category"
+                            name="category"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+                            required>
+                        <option value="">Pilih Kategori</option>
+                        @php
+                            // Fallback categories jika variabel $categories tidak ada
+                            $fallbackCategories = [
+                                'makanan' => 'Makanan & Minuman',
+                                'transportasi' => 'Transportasi',
+                                'hiburan' => 'Hiburan',
+                                'kesehatan' => 'Kesehatan',
+                                'pendidikan' => 'Pendidikan',
+                                'belanja' => 'Belanja',
+                                'tagihan' => 'Tagihan & Utilitas',
+                                'investasi' => 'Investasi',
+                                'lainnya' => 'Lainnya'
+                            ];
+                            $categories = $categories ?? $fallbackCategories;
+                        @endphp
+                        @foreach($categories as $key => $value)
+                            <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>
+                                {{ $value }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('category')
+                        <p class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
+                <!-- Periode -->
+                <div>
+                    <label for="period" class="block text-gray-300 mb-2 font-semibold">
+                        Periode *
+                    </label>
+                    <input type="month"
+                           id="period"
+                           name="period"
+                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+                           value="{{ old('period') }}"
+                           min="{{ date('Y-m') }}"
+                           required>
+                    <p class="text-gray-400 text-xs mt-1">
+                        Pilih bulan dan tahun untuk periode anggaran
+                    </p>
+                    @error('period')
+                        <p class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
+                <!-- Jumlah Alokasi -->
+                <div>
+                    <label for="allocated_amount" class="block text-gray-300 mb-2 font-semibold">
+                        Jumlah Alokasi (Rp) *
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">Rp</span>
+                        <input type="number"
+                               id="allocated_amount"
+                               name="allocated_amount"
+                               class="w-full bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+                               value="{{ old('allocated_amount') }}"
+                               placeholder="0"
+                               min="1000"
+                               step="1000"
+                               required>
+                    </div>
+                    <p class="text-gray-400 text-xs mt-1">
+                        Minimum anggaran: Rp 1.000
+                    </p>
+                    @error('allocated_amount')
+                        <p class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
+                <!-- Deskripsi -->
+                <div>
+                    <label for="description" class="block text-gray-300 mb-2 font-semibold">
+                        Deskripsi
+                        <span class="text-gray-400 text-sm font-normal">(Opsional)</span>
+                    </label>
+                    <textarea id="description"
+                              name="description"
+                              rows="4"
+                              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200 resize-none"
+                              placeholder="Tambahkan deskripsi atau catatan untuk anggaran ini...">{{ old('description') }}</textarea>
+                    <div class="flex justify-between text-gray-400 text-xs mt-1">
+                        <span>Maksimal 500 karakter</span>
+                        <span id="charCount">0/500</span>
+                    </div>
+                    @error('description')
+                        <p class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div id="previewSection" class="hidden mt-8 p-6 bg-gray-750 rounded-lg border border-gray-600">
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <i class="fas fa-eye mr-2"></i>
+                    Preview Anggaran
+                </h3>
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-gray-400">Nama Anggaran</p>
+                        <p id="previewName" class="text-white font-semibold">-</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Kategori</p>
+                        <p id="previewCategory" class="text-white font-semibold">-</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Periode</p>
+                        <p id="previewPeriod" class="text-white font-semibold">-</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Jumlah Alokasi</p>
+                        <p id="previewAmount" class="text-white font-semibold">-</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-gray-400">Deskripsi</p>
+                        <p id="previewDescription" class="text-white font-semibold">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-700">
+                <a href="{{ route('advance.budgets.index') }}"
+                   class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition duration-200 flex items-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Batal
+                </a>
+                <button type="submit"
+                        class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition duration-200 flex items-center">
+                    <i class="fas fa-save mr-2"></i>
+                    Simpan Anggaran
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tips Section -->
+    <div class="bg-gray-800 rounded-2xl p-6 card-shadow border border-gray-700 max-w-2xl mx-auto">
+        <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+            <i class="fas fa-lightbulb mr-2 text-yellow-400"></i>
+            Tips Mengatur Anggaran
+        </h3>
+        <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-300">
+            <div class="flex items-start">
+                <i class="fas fa-check-circle text-green-400 mr-2 mt-1"></i>
+                <span>Buat anggaran yang realistis sesuai kemampuan finansial</span>
+            </div>
+            <div class="flex items-start">
+                <i class="fas fa-check-circle text-green-400 mr-2 mt-1"></i>
+                <span>Pisahkan anggaran berdasarkan kategori kebutuhan</span>
+            </div>
+            <div class="flex items-start">
+                <i class="fas fa-check-circle text-green-400 mr-2 mt-1"></i>
+                <span>Review anggaran secara berkala setiap bulan</span>
+            </div>
+            <div class="flex items-start">
+                <i class="fas fa-check-circle text-green-400 mr-2 mt-1"></i>
+                <span>Sisihkan dana untuk kebutuhan tak terduga</span>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    const previewSection = document.getElementById('previewSection');
+    const charCount = document.getElementById('charCount');
+    const descriptionTextarea = document.getElementById('description');
+
+    // Format currency
+    function formatRupiah(amount) {
+        if (!amount) return 'Rp 0';
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(amount);
+    }
+
+    // Format period
+    function formatPeriod(period) {
+        if (!period) return '-';
+        const date = new Date(period + '-01');
+        return date.toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long'
+        });
+    }
+
+    // Get category name
+    function getCategoryName(categoryKey) {
+        const categorySelect = document.getElementById('category');
+        const selectedOption = categorySelect.querySelector(`option[value="${categoryKey}"]`);
+        return selectedOption ? selectedOption.textContent : categoryKey;
+    }
+
+    // Update character count
+    function updateCharCount() {
+        const count = descriptionTextarea.value.length;
+        charCount.textContent = `${count}/500`;
+
+        if (count > 500) {
+            charCount.classList.add('text-red-400');
+        } else {
+            charCount.classList.remove('text-red-400');
+        }
+    }
+
+    // Update preview
+    function updatePreview() {
+        const budgetName = document.getElementById('budget_name').value;
+        const category = document.getElementById('category').value;
+        const period = document.getElementById('period').value;
+        const allocatedAmount = document.getElementById('allocated_amount').value;
+        const description = document.getElementById('description').value;
+
+        // Check if all required fields have values
+        const hasRequiredFields = budgetName && category && period && allocatedAmount;
+
+        if (hasRequiredFields) {
+            document.getElementById('previewName').textContent = budgetName || '-';
+            document.getElementById('previewCategory').textContent = getCategoryName(category);
+            document.getElementById('previewPeriod').textContent = formatPeriod(period);
+            document.getElementById('previewAmount').textContent = formatRupiah(allocatedAmount);
+            document.getElementById('previewDescription').textContent = description || '-';
+
+            previewSection.classList.remove('hidden');
+        } else {
+            previewSection.classList.add('hidden');
+        }
+    }
+
+    // Format amount input
+    function formatAmountInput() {
+        const amountInput = document.getElementById('allocated_amount');
+        amountInput.addEventListener('blur', function() {
+            if (this.value) {
+                this.value = parseInt(this.value).toString();
+            }
+        });
+    }
+
+    // Set default period to current month
+    function setDefaultPeriod() {
+        const periodInput = document.getElementById('period');
+        if (!periodInput.value) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            periodInput.value = `${year}-${month}`;
+        }
+    }
+
+    // Add event listeners
+    formInputs.forEach(input => {
+        input.addEventListener('input', updatePreview);
+        input.addEventListener('change', updatePreview);
+    });
+
+    descriptionTextarea.addEventListener('input', function() {
+        updateCharCount();
+        updatePreview();
+    });
+
+    // Initialize
+    setDefaultPeriod();
+    formatAmountInput();
+    updateCharCount();
+    updatePreview();
+});
+</script>
 @endsection

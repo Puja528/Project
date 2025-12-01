@@ -30,15 +30,6 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        User::create([
-            'name' => 'Sari Dewi',
-            'email' => 'sari@email.com',
-            'password' => Hash::make('password123'),
-            'type' => 'standard',
-            'status' => 'active',
-            'email_verified_at' => now(),
-        ]);
-
         // User advance
         User::create([
             'name' => 'Ahmad Rizki',
@@ -46,15 +37,6 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password123'),
             'type' => 'advance',
             'status' => 'active',
-            'email_verified_at' => now(),
-        ]);
-
-        User::create([
-            'name' => 'Maya Sari',
-            'email' => 'maya@email.com',
-            'password' => Hash::make('password123'),
-            'type' => 'advance',
-            'status' => 'inactive',
             'email_verified_at' => now(),
         ]);
     }

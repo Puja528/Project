@@ -11,11 +11,11 @@
             --gradient-start: #9146ff;
             --gradient-end: #c454e5;
         }
-        
+
         .gradient-bg {
             background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
         }
-        
+
         .card-shadow {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
@@ -29,29 +29,25 @@
                 <div class="flex items-center space-x-8">
                     <h1 class="text-2xl font-bold">Fintrack <span class="text-yellow-300">Admin</span></h1>
                     <div class="hidden md:flex space-x-6">
-                        <a href="{{ route('admin.dashboard') }}" 
+                        <a href="{{ route('admin.dashboard') }}"
                            class="hover:text-pink-200 transition {{ request()->routeIs('admin.dashboard') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Dashboard
                         </a>
-                        <a href="{{ route('admin.users') }}" 
+                        <a href="{{ route('admin.users') }}"
                            class="hover:text-pink-200 transition {{ request()->routeIs('admin.users') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Users
                         </a>
-                        <a href="{{ route('admin.transactions') }}" 
+                        <a href="{{ route('admin.transactions') }}"
                            class="hover:text-pink-200 transition {{ request()->routeIs('admin.transactions') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Transactions
                         </a>
-                        <a href="{{ route('admin.analytics') }}" 
+                        <a href="{{ route('admin.analytics') }}"
                            class="hover:text-pink-200 transition {{ request()->routeIs('admin.analytics') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Analytics
                         </a>
-                        <a href="{{ route('admin.reports') }}" 
+                        <a href="{{ route('admin.reports') }}"
                            class="hover:text-pink-200 transition {{ request()->routeIs('admin.reports') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Reports
-                        </a>
-                        <a href="{{ route('admin.activity-logs') }}" 
-                           class="hover:text-pink-200 transition {{ request()->routeIs('admin.activity-logs') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
-                            Activity Logs
                         </a>
                     </div>
                 </div>
@@ -63,7 +59,7 @@
                     </div>
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" 
+                        <button type="submit"
                                class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition text-sm">
                             Logout
                         </button>
@@ -80,7 +76,7 @@
 
     <!-- WhatsApp Button -->
     @include('components.whatsapp-button')
-    
+
     @stack('scripts')
 </body>
 </html>

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -55,24 +57,23 @@ class AuthController extends Controller
                 'regex:/[A-Z]/',
                 'regex:/[0-9]/',
             ],
-        ], [
-            'password.min' => 'Password harus memiliki minimal 8 karakter',
-            'password.regex' => 'Password harus mengandung huruf kecil, huruf besar, dan angka',
         ]);
 
         $username = $request->username;
         $email = $request->email;
         $password = $request->password;
 
-        // Cek kredensial untuk semua tipe user
+        // VALIDASI CREDENTIAL MANUAL
         $errors = [];
         $userType = null;
         $userData = null;
 
         foreach ($this->users as $type => $user) {
-            if ($username === $user['username'] &&
+            if (
+                $username === $user['username'] &&
                 $email === $user['email'] &&
-                $password === $user['password']) {
+                $password === $user['password']
+            ) {
                 $userType = $type;
                 $userData = $user;
                 break;
@@ -92,31 +93,51 @@ class AuthController extends Controller
             if (!in_array($password, array_column($this->users, 'password'))) {
                 $errors['password'] = ['Password salah'];
             }
-        }
 
-        if (!empty($errors)) {
             return redirect()->route('login.index')
                 ->withErrors($errors)
                 ->withInput();
         }
 
-        // Login berhasil - redirect berdasarkan tipe user
+        // SIMPAN USER KE DB JIKA BELUM ADA
+        $userDB = User::where('email', $email)->first();
+
+        if (!$userDB) {
+            $userDB = User::create([
+                'name' => $username,
+                'email' => $email,
+                'password' => bcrypt('passworddummy'),
+                'type' => $userType,
+                'status' => 1,
+            ]);
+        }
+
+        // LOGIN KE LARAVEL AUTH
+        Auth::login($userDB);
+
+        // SIMPAN DATA KE SESSION
         session([
             'logged_in' => true,
+            'user_id' => $userDB->id,   // ← FIX UTAMA
             'username' => $username,
             'user_type' => $userType,
             'user_data' => $userData,
         ]);
 
-        // Redirect berdasarkan tipe user
+        // Redirect sesuai role
         switch ($userType) {
             case 'admin':
-                return redirect()->route('admin.dashboard')->with('success', 'Login Admin Berhasil!');
+                return redirect()->route('admin.dashboard')
+                    ->with('success', 'Login Admin Berhasil!');
+
             case 'advance':
-                return redirect()->route('home.advance')->with('success', 'Login Advance Berhasil! Selamat datang ' . $username);
+                return redirect()->route('home.advance')
+                    ->with('success', 'Login Advance Berhasil! Selamat datang ' . $username);
+
             case 'standard':
             default:
-                return redirect()->route('home.standard')->with('success', 'Login Berhasil! Selamat datang ' . $username);
+                return redirect()->route('home.standard')
+                    ->with('success', 'Login Berhasil! Selamat datang ' . $username);
         }
     }
 }

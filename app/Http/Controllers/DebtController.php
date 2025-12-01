@@ -2,156 +2,100 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Debt;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class DebtController extends Controller
 {
-    private $debts = [];
-    private $nextId = 1;
-
-    public function __construct()
-    {
-        $this->debts = [
-            [
-                'id' => 1,
-                'type' => 'piutang',
-                'person_name' => 'PT. ABC Supplier',
-                'amount' => 5000000,
-                'initial_amount' => 5000000,
-                'due_date' => '2024-02-15',
-                'status' => 'active',
-                'interest_rate' => 0,
-                'description' => ''
-            ]
-        ];
-        $this->nextId = 2;
-    }
-
     public function index()
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
+        $debts = Debt::orderBy('due_date', 'asc')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(10);
 
-        // Gunakan $this->debts untuk perhitungan
-        $totalPiutang = array_sum(array_column(array_filter($this->debts, function($debt) { 
-            return $debt['type'] === 'piutang'; 
-        }), 'amount'));
-
-        $totalHutang = array_sum(array_column(array_filter($this->debts, function($debt) { 
-            return $debt['type'] === 'hutang'; 
-        }), 'amount'));
-
+        // Hitung summary
+        $totalPiutang = Debt::where('type', 'piutang')->sum('amount');
+        $totalHutang = Debt::where('type', 'hutang')->sum('amount');
         $netPosition = $totalPiutang - $totalHutang;
 
-        // Kirim data ke view dengan array asosiatif
-        return view('pages.debts.index', [
-            'debts' => $this->debts,
-            'totalPiutang' => $totalPiutang,
-            'totalHutang' => $totalHutang,
-            'netPosition' => $netPosition
-        ]);
+        // Tambahkan flag is_overdue untuk setiap debt
+        $debts->getCollection()->transform(function ($debt) {
+            $debt->is_overdue = $debt->status === 'active' && Carbon::parse($debt->due_date)->isPast();
+            return $debt;
+        });
+
+        return view('pages.advance.debts.index', compact('debts', 'totalPiutang', 'totalHutang', 'netPosition'));
     }
 
     public function create()
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        return view('pages.debts.create');
+        return view('pages.advance.debts.create');
     }
 
     public function store(Request $request)
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        $request->validate([
-            'type' => 'required|in:hutang,piutang',
+        $validated = $request->validate([
+            'type' => 'required|in:piutang,hutang',
             'person_name' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
-            'interest_rate' => 'nullable|numeric|min:0',
-            'description' => 'nullable|string'
+            'interest_rate' => 'nullable|numeric|min:0|max:100',
+            'status' => 'required|in:active,paid,overdue',
+            'description' => 'nullable|string|max:500',
         ]);
 
-        $debt = [
-            'id' => $this->nextId++,
-            'type' => $request->type,
-            'person_name' => $request->person_name,
-            'amount' => $request->amount,
-            'initial_amount' => $request->amount,
-            'due_date' => $request->due_date,
-            'interest_rate' => $request->interest_rate ?? 0,
-            'description' => $request->description,
-            'status' => 'active'
-        ];
+        Debt::create([
+            'type' => $validated['type'],
+            'person_name' => $validated['person_name'],
+            'amount' => $validated['amount'],
+            'initial_amount' => $validated['amount'], // Sama dengan amount untuk awal
+            'due_date' => $validated['due_date'],
+            'interest_rate' => $validated['interest_rate'] ?? 0,
+            'status' => $validated['status'],
+            'description' => $validated['description'],
+        ]);
 
-        $this->debts[] = $debt;
-
-        return redirect()->route('debts.index')->with('success', 'Data hutang/piutang berhasil ditambahkan!');
+        return redirect()->route('advance.debts.index')
+                        ->with('success', 'Data hutang/piutang berhasil ditambahkan!');
     }
 
-    // Method edit, update, dan destroy
-    public function edit($id)
+    public function edit(Debt $debt)
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        $debt = collect($this->debts)->firstWhere('id', $id);
-        
-        if (!$debt) {
-            return redirect()->route('debts.index')->with('error', 'Data tidak ditemukan.');
-        }
-
-        return view('pages.debts.edit', compact('debt'));
+        return view('advance.debts.edit', compact('debt'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Debt $debt)
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        $request->validate([
-            'type' => 'required|in:hutang,piutang',
+        $validated = $request->validate([
+            'type' => 'required|in:piutang,hutang',
             'person_name' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
-            'interest_rate' => 'nullable|numeric|min:0',
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,paid,overdue'
+            'interest_rate' => 'nullable|numeric|min:0|max:100',
+            'status' => 'required|in:active,paid,overdue',
+            'description' => 'nullable|string|max:500',
         ]);
 
-        foreach ($this->debts as &$debt) {
-            if ($debt['id'] == $id) {
-                $debt['type'] = $request->type;
-                $debt['person_name'] = $request->person_name;
-                $debt['amount'] = $request->amount;
-                $debt['due_date'] = $request->due_date;
-                $debt['interest_rate'] = $request->interest_rate ?? 0;
-                $debt['description'] = $request->description;
-                $debt['status'] = $request->status;
-                break;
-            }
-        }
+        $debt->update([
+            'type' => $validated['type'],
+            'person_name' => $validated['person_name'],
+            'amount' => $validated['amount'],
+            'due_date' => $validated['due_date'],
+            'interest_rate' => $validated['interest_rate'] ?? 0,
+            'status' => $validated['status'],
+            'description' => $validated['description'],
+        ]);
 
-        return redirect()->route('debts.index')->with('success', 'Data hutang/piutang berhasil diperbarui!');
+        return redirect()->route('advance.debts.index')
+                        ->with('success', 'Data hutang/piutang berhasil diperbarui!');
     }
 
-    public function destroy($id)
+    public function destroy(Debt $debt)
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
+        $debt->delete();
 
-        $this->debts = array_filter($this->debts, function($debt) use ($id) {
-            return $debt['id'] != $id;
-        });
-
-        return redirect()->route('debts.index')->with('success', 'Data hutang/piutang berhasil dihapus!');
+        return redirect()->route('advance.debts.index')
+                        ->with('success', 'Data hutang/piutang berhasil dihapus!');
     }
 }

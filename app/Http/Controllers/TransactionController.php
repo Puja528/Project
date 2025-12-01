@@ -2,119 +2,133 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
-    private $transactions = [];
-    private $nextId = 1;
-
-    public function __construct()
-    {
-        // Data dummy transaksi
-        $this->transactions = [
-            [
-                'id' => 1,
-                'title' => 'Belanja Bulanan',
-                'amount' => 1200000,
-                'type' => 'expense',
-                'category' => 'belanja',
-                'eisenhower_category' => 'urgent_important',
-                'date' => '2024-01-15',
-                'description' => 'Belanja kebutuhan bulanan keluarga'
-            ],
-            [
-                'id' => 2,
-                'title' => 'Gaji Bulanan',
-                'amount' => 8500000,
-                'type' => 'income', 
-                'category' => 'gaji',
-                'eisenhower_category' => 'not_urgent_important',
-                'date' => '2024-01-01',
-                'description' => 'Gaji bulan Januari'
-            ]
-        ];
-        $this->nextId = 3;
-    }
-
     public function index()
     {
-        if (!session('logged_in')) {
-            return redirect()->route('login.index')->with('error', 'Silakan login terlebih dahulu.');
+        // Cek akses user
+        if (!session('logged_in') || session('user_type') !== 'advance') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
-        return view('pages.transactions.index', [
-            'transactions' => $this->transactions,
-            'categories' => $this->getCategories()
-        ]);
-    }
+        $userId = session('user_id');
 
-    public function create()
-    {
-        if (!session('logged_in')) {
-            return redirect()->route('login.index')->with('error', 'Silakan login terlebih dahulu.');
-        }
+        // Ambil transaksi user
+        $transactions = Transaction::where('user_id', $userId)
+            ->orderBy('tanggal', 'desc')
+            ->get();
 
-        return view('pages.transactions.create', [
-            'categories' => $this->getCategories(),
-            'eisenhower_categories' => $this->getEisenhowerCategories()
-        ]);
-    }
-
-    public function store(Request $request)
-    {
-        if (!session('logged_in')) {
-            return redirect()->route('login.index')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:income,expense',
-            'category' => 'required|string',
-            'eisenhower_category' => 'required|in:urgent_important,not_urgent_important,urgent_not_important,not_urgent_not_important',
-            'date' => 'required|date',
-            'description' => 'nullable|string'
-        ]);
-
-        $transaction = [
-            'id' => $this->nextId++,
-            'title' => $request->title,
-            'amount' => $request->amount,
-            'type' => $request->type,
-            'category' => $request->category,
-            'eisenhower_category' => $request->eisenhower_category,
-            'date' => $request->date,
-            'description' => $request->description
-        ];
-
-        $this->transactions[] = $transaction;
-
-        return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil ditambahkan!');
-    }
-
-    private function getCategories()
-    {
-        return [
-            'gaji' => 'Gaji',
-            'investasi' => 'Investasi',
-            'bonus' => 'Bonus',
-            'belanja' => 'Belanja',
+        // Untuk menampilkan kategori dalam teks rapi
+        $categories = [
+            'makanan' => 'Makanan',
             'transportasi' => 'Transportasi',
             'hiburan' => 'Hiburan',
             'kesehatan' => 'Kesehatan',
             'pendidikan' => 'Pendidikan',
-            'lainnya' => 'Lainnya'
+            'belanja' => 'Belanja',
+            'tagihan' => 'Tagihan',
+            'lainnya' => 'Lainnya',
         ];
+
+        return view('pages.advance.transactions.index', compact('transactions', 'categories'));
     }
 
-    private function getEisenhowerCategories()
+    public function create()
     {
-        return [
-            'urgent_important' => 'Penting & Mendesak',
-            'not_urgent_important' => 'Penting & Tidak Mendesak',
-            'urgent_not_important' => 'Mendesak & Tidak Penting', 
-            'not_urgent_not_important' => 'Tidak Mendesak & Tidak Penting'
-        ];
+        if (!session('logged_in') || session('user_type') !== 'advance') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        return view('pages.advance.transactions.create');
+    }
+
+    public function store(Request $request)
+    {
+        // Akses
+        if (!session('logged_in') || session('user_type') !== 'advance') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        // Validasi sesuai tabel
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'type' => 'required|in:pemasukan,pengeluaran',
+            'category' => 'required|string',
+            'priority' => 'required|in:rendah,sedang,tinggi',
+            'date' => 'required|date',
+        ]);
+
+        // Simpan ke database
+        Transaction::create([
+            'judul' => $request->title,
+            'jumlah' => $request->amount,
+            'tipe' => $request->type,
+            'kategori' => $request->category,
+            'prioritas' => $request->priority,
+            'tanggal' => $request->date,
+            'user_id' => session('user_id'),
+        ]);
+
+        return redirect()
+            ->route('advance.transactions.index')
+            ->with('success', 'Transaksi berhasil ditambahkan!');
+    }
+
+    public function edit($id)
+    {
+        if (!session('logged_in') || session('user_type') !== 'advance') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        $transaction = Transaction::where('user_id', session('user_id'))->findOrFail($id);
+
+        return view('advance.transactions.edit', compact('transaction'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        if (!session('logged_in') || session('user_type') !== 'advance') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric',
+            'type' => 'required|in:pemasukan,pengeluaran',
+            'category' => 'required|string|max:255',
+            'priority' => 'required|in:rendah,sedang,tinggi',
+            'date' => 'required|date',
+        ]);
+
+        $transaction = Transaction::where('user_id', session('user_id'))->findOrFail($id);
+
+        $transaction->update([
+            'judul' => $request->title,
+            'jumlah' => $request->amount,
+            'tipe' => $request->type,
+            'kategori' => $request->category,
+            'prioritas' => $request->priority,
+            'tanggal' => $request->date,
+        ]);
+
+        return redirect()->route('advance.transactions.index')
+            ->with('success', 'Transaksi berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        if (!session('logged_in') || session('user_type') !== 'advance') {
+            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
+        }
+
+        $transaction = Transaction::where('user_id', session('user_id'))->findOrFail($id);
+        $transaction->delete();
+
+        return redirect()->route('advance.transactions.index')
+            ->with('success', 'Transaksi berhasil dihapus.');
     }
 }

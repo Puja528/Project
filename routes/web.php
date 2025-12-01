@@ -11,6 +11,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\DebtController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\PriorityMatrixController;
 use Illuminate\Support\Facades\Route;
 
 // Auth Routes
@@ -22,7 +23,7 @@ Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login')
 
 // Public Routes - Guest
 Route::get('/', function () {
-    return view('pages.guest.home');
+    return view('pages.home.guest');
 })->name('home.guest');
 
 // Public Pages - Hanya untuk Guest
@@ -112,39 +113,79 @@ Route::get('/features', function () {
     return view('pages.guest.features', compact('features'));
 })->name('features');
 
-
-// Protected Routes - Standard User
+// Protected Routes
 Route::middleware(['auth.custom'])->group(function () {
+    // Standard User Routes
     Route::get('/home-standard', [HomeStandardController::class, 'index'])->name('home.standard');
 
-    // Protected Routes - Advance User
-    Route::get('/home-advance', [HomeAdvanceController::class, 'index'])->name('home.advance');
+    // Advance User Routes dengan prefix yang benar
+    Route::prefix('advance')->group(function () {
+        Route::get('/home', [HomeAdvanceController::class, 'index'])->name('home.advance');
+
+        //Matrix Routes
+        Route::get('/priority-matrix', [PriorityMatrixController::class, 'index'])->name('advance.priority-matrix');
+        Route::get('/priority-matrix/{id}', [PriorityMatrixController::class, 'show'])->name('advance.priority-matrix.detail');
+
+        // Budget routes
+        Route::get('/budgets', [BudgetController::class, 'index'])->name('advance.budgets.index');
+        Route::get('/budgets/create', [BudgetController::class, 'create'])->name('advance.budgets.create');
+        Route::post('/budgets/store', [BudgetController::class, 'store'])->name('advance.budgets.store');
+        Route::get('/budgets/{id}/edit', [BudgetController::class, 'edit'])->name('advance.budgets.edit');
+        Route::put('/budgets/{id}', [BudgetController::class, 'update'])->name('advance.budgets.update');
+        Route::delete('/budgets/{id}', [BudgetController::class, 'destroy'])->name('advance.budgets.destroy');
+
+        // Investment routes
+        Route::get('/investments', [InvestmentController::class, 'index'])->name('advance.investments.index');
+        Route::get('/investments/create', [InvestmentController::class, 'create'])->name('advance.investments.create');
+        Route::post('/investments', [InvestmentController::class, 'store'])->name('advance.investments.store');
+        Route::post('/investments/{id}/edit', [InvestmentController::class, 'edit'])->name('advance.investments.edit');
+        Route::post('/investments/{id}', [InvestmentController::class, 'update'])->name('advance.investments.update');
+        Route::post('/investments/{id}', [InvestmentController::class, 'destroy'])->name('advance.investments.destroy');
+
+        // Debt routes
+        Route::get('/debts', [DebtController::class, 'index'])->name('advance.debts.index');
+        Route::get('/debts/create', [DebtController::class, 'create'])->name('advance.debts.create');
+        Route::post('/debts', [DebtController::class, 'store'])->name('advance.debts.store');
+        Route::get('/debts/{id}/edit', [DebtController::class, 'edit'])->name('advance.debts.edit');
+        Route::put('/debts/{id}', [DebtController::class, 'update'])->name('advance.debts.update');
+        Route::delete('/debts/{id}', [DebtController::class, 'destroy'])->name('advance.debts.destroy');
+
+        // Report routes
+        Route::get('/reports', [ReportController::class, 'index'])->name('advance.reports.index');
+        Route::post('/reports/export-advance', [ReportController::class, 'exportAdvance'])->name('advance.export.advance');
+        Route::get('/reports/cash-flow', [ReportController::class, 'cashFlow'])->name('advance.reports.cashflow');
+        Route::get('/reports/tax-planning', [ReportController::class, 'taxPlanning'])->name('advance.reports.tax');
+
+        // Transactions routes
+        Route::get('/transactions', [TransactionController::class, 'index'])->name('advance.transactions.index');
+        Route::get('/transactions/create', [TransactionController::class, 'create'])->name('advance.transactions.create');
+        Route::post('/transactions', [TransactionController::class, 'store'])->name('advance.transactions.store');
+        Route::put('/transactions/{id}/edit', [TransactionController::class, 'edit'])->name('advance.transactions.edit');
+        Route::put('/transactions/{id}', [TransactionController::class, 'update'])->name('advance.transactions.update');
+        Route::delete('/transactions/{id}', [TransactionController::class, 'destroy'])->name('advance.transactions.destroy');
+    });
+
+    // Common routes untuk semua user
     Route::resource('transactions', TransactionController::class);
     Route::resource('savings', SavingsController::class);
-    Route::resource('budgets', BudgetController::class);
-    Route::resource('investments', InvestmentController::class);
-    Route::resource('debts', DebtController::class);
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::post('/export-advance', [ReportController::class, 'exportAdvance'])->name('export.advance');
-    Route::get('/cash-flow', [ReportController::class, 'cashFlow'])->name('cashflow');
-    Route::get('/tax-planning', [ReportController::class, 'taxPlanning'])->name('tax.planning');
 
-    // Protected Routes - Admin
-    Route::get('/admin-dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
-    Route::get('/admin/transactions', [AdminController::class, 'transactions'])->name('admin.transactions');
-    Route::get('/admin/analytics', [AdminController::class, 'analytics'])->name('admin.analytics');
-    Route::get('/admin/reports', [AdminController::class, 'reports'])->name('admin.reports');
-    Route::get('/admin/activity-logs', [AdminController::class, 'activityLogs'])->name('admin.activity-logs');
+    // Export basic
+    Route::post('/export-basic', [ReportController::class, 'exportBasic'])->name('reports.export.basic');
+    Route::post('/export-basic', [TransactionController::class, 'exportBasic'])->name('export.basic');
 
-    // Admin User Management Routes
+    // Admin Routes
     Route::prefix('admin')->group(function () {
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
         Route::get('/users/create', [AdminController::class, 'createUser'])->name('admin.users.create');
         Route::post('/users/store', [AdminController::class, 'storeUser'])->name('admin.users.store');
         Route::get('/users/edit/{id}', [AdminController::class, 'editUser'])->name('admin.users.edit');
         Route::put('/users/update/{id}', [AdminController::class, 'updateUser'])->name('admin.users.update');
         Route::delete('/users/delete/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
+        Route::get('/transactions', [AdminController::class, 'transactions'])->name('admin.transactions');
+        Route::get('/analytics', [AdminController::class, 'analytics'])->name('admin.analytics');
+        Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
+        Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('admin.activity-logs');
     });
 });
 
@@ -153,7 +194,3 @@ Route::post('/logout', function () {
     session()->flush();
     return redirect()->route('home.guest')->with('success', 'Logout berhasil!');
 })->name('logout');
-
-Route::get('/test', function () {
-    return 'Test page';
-})->middleware('auth.custom');

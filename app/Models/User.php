@@ -26,4 +26,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Relasi ke tabel budget
+     */
+    public function budgets()
+    {
+        return $this->hasMany(Budget::class, 'user_id');
+    }
 }

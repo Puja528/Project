@@ -2,91 +2,77 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Investment;
 use Illuminate\Http\Request;
 
 class InvestmentController extends Controller
 {
-    private $investments = [];
-    private $nextId = 1;
-
-    public function __construct()
-    {
-        $this->investments = [
-            [
-                'id' => 1,
-                'name' => 'Saham BBCA',
-                'type' => 'saham',
-                'initial_amount' => 10000000,
-                'current_value' => 12500000,
-                'return_percentage' => 25.0,
-                'start_date' => '2023-01-15',
-                'risk_level' => 'medium'
-            ]
-        ];
-        $this->nextId = 2;
-    }
-
     public function index()
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
-        return view('pages.investments.index', ['investments' => $this->investments]);
+        $investments = Investment::all();
+        return view('pages.advance.investments.index', compact('investments'));
     }
 
     public function create()
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
+        $types = [
+            'saham', 'reksadana', 'deposito', 'obligasi', 'emas', 'property', 'lainnya'
+        ];
 
-        return view('pages.investments.create', ['types' => $this->getInvestmentTypes()]);
+        return view('pages.advance.investments.create', compact('types'));
     }
 
     public function store(Request $request)
     {
-        if (!session('logged_in') || session('user_type') !== 'advance') {
-            return redirect()->route('login.index')->with('error', 'Akses ditolak.');
-        }
-
         $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|string',
+            'name' => 'required',
+            'type' => 'required',
+            'risk_level' => 'required|in:low,medium,high',
             'initial_amount' => 'required|numeric|min:0',
             'current_value' => 'required|numeric|min:0',
-            'start_date' => 'required|date',
-            'risk_level' => 'required|in:low,medium,high'
+            'start_date' => 'required|date'
         ]);
 
-        $return_percentage = (($request->current_value - $request->initial_amount) / $request->initial_amount) * 100;
+        Investment::create($request->all());
 
-        $investment = [
-            'id' => $this->nextId++,
-            'name' => $request->name,
-            'type' => $request->type,
-            'initial_amount' => $request->initial_amount,
-            'current_value' => $request->current_value,
-            'return_percentage' => round($return_percentage, 2),
-            'start_date' => $request->start_date,
-            'risk_level' => $request->risk_level
-        ];
-
-        $this->investments[] = $investment;
-
-        return redirect()->route('investments.index')->with('success', 'Investasi berhasil ditambahkan!');
+        return redirect()->route('advance.investments.index')
+            ->with('success', 'Investasi berhasil ditambahkan!');
     }
 
-    private function getInvestmentTypes()
+    public function edit($id)
     {
-        return [
-            'saham' => 'Saham',
-            'reksadana' => 'Reksadana',
-            'deposito' => 'Deposito',
-            'obligasi' => 'Obligasi',
-            'emas' => 'Emas',
-            'property' => 'Property',
-            'lainnya' => 'Lainnya'
+        $investment = Investment::findOrFail($id);
+
+        $types = [
+            'saham', 'reksadana', 'deposito', 'obligasi', 'emas', 'property', 'lainnya'
         ];
+
+        return view('advance.investments.edit', compact('investment', 'types'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+            'risk_level' => 'required|in:low,medium,high',
+            'initial_amount' => 'required|numeric|min:0',
+            'current_value' => 'required|numeric|min:0',
+            'start_date' => 'required|date'
+        ]);
+
+        $investment = Investment::findOrFail($id);
+        $investment->update($request->all());
+
+        return redirect()->route('advance.investments.index')
+            ->with('success', 'Investasi berhasil diperbarui!');
+    }
+
+    public function destroy($id)
+    {
+        Investment::findOrFail($id)->delete();
+
+        return redirect()->route('advance.investments.index')
+            ->with('success', 'Investasi berhasil dihapus!');
     }
 }

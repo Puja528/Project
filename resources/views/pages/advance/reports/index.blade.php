@@ -6,9 +6,9 @@
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-white">Laporan Keuangan Profesional</h1>
-        <form action="{{ route('export.advance') }}" method="POST">
+        <form action="{{ route('advance.export.advance') }}" method="POST">
             @csrf
-            <button type="submit" 
+            <button type="submit"
                     class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition">
                 📊 Ekspor Laporan
             </button>
@@ -86,18 +86,18 @@
 
     <!-- Quick Access Cards -->
     <div class="grid md:grid-cols-3 gap-6">
-        <a href="{{ route('cashflow') }}" class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 card-shadow hover:from-purple-700 hover:to-pink-700 transition">
+        <a href="{{ route('advance.reports.cashflow') }}" class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 card-shadow hover:from-purple-700 hover:to-pink-700 transition">
             <div class="text-3xl mb-4">💸</div>
             <h3 class="text-xl font-bold text-white mb-2">Cash Flow Analysis</h3>
             <p class="text-purple-200">Analisis arus kas mendalam dengan forecasting</p>
         </a>
-        
-        <a href="{{ route('tax.planning') }}" class="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 card-shadow hover:from-blue-700 hover:to-cyan-700 transition">
+
+        <a href="{{ route('advance.reports.tax') }}" class="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 card-shadow hover:from-blue-700 hover:to-cyan-700 transition">
             <div class="text-3xl mb-4">🧾</div>
             <h3 class="text-xl font-bold text-white mb-2">Tax Planning</h3>
             <p class="text-blue-200">Perencanaan pajak dan perhitungan otomatis</p>
         </a>
-        
+
         <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-6 card-shadow">
             <div class="text-3xl mb-4">📈</div>
             <h3 class="text-xl font-bold text-white mb-2">Financial Forecast</h3>

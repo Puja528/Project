@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,25 +12,37 @@
             --gradient-start: #8B5CF6;
             --gradient-end: #EC4899;
         }
-        
+
         .gradient-bg {
             background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
         }
-        
+
         .dark-bg {
             background: #0F172A;
         }
-        
+
         .card-shadow {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        
-        .urgent-important { border-left: 4px solid #EF4444; }
-        .not-urgent-important { border-left: 4px solid #8B5CF6; }
-        .urgent-not-important { border-left: 4px solid #F59E0B; }
-        .not-urgent-not-important { border-left: 4px solid #10B981; }
+
+        .urgent-important {
+            border-left: 4px solid #EF4444;
+        }
+
+        .not-urgent-important {
+            border-left: 4px solid #8B5CF6;
+        }
+
+        .urgent-not-important {
+            border-left: 4px solid #F59E0B;
+        }
+
+        .not-urgent-not-important {
+            border-left: 4px solid #10B981;
+        }
     </style>
 </head>
+
 <body class="dark-bg">
     <!-- Navigation Header -->
     <nav class="gradient-bg text-white shadow-lg">
@@ -38,28 +51,24 @@
                 <div class="flex items-center space-x-8">
                     <h1 class="text-2xl font-bold">Fintrack <span class="text-pink-200">Advance</span></h1>
                     <div class="hidden md:flex space-x-6">
-                        <a href="{{ route('home.advance') }}" 
-                           class="hover:text-pink-200 transition {{ request()->routeIs('home.advance') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
+                        <a href="{{ route('home.advance') }}"
+                            class="hover:text-pink-200 transition {{ request()->routeIs('home.advance') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Dashboard
                         </a>
-                        <a href="{{ route('transactions.index') }}" 
-                           class="hover:text-pink-200 transition {{ request()->routeIs('transactions.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
-                            Transaksi
-                        </a>
-                        <a href="{{ route('budgets.index') }}" 
-                           class="hover:text-pink-200 transition {{ request()->routeIs('budgets.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
+                        <a href="{{ route('advance.budgets.index') }}"
+                            class="hover:text-pink-200 transition {{ request()->routeIs('budgets.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Anggaran
                         </a>
-                        <a href="{{ route('investments.index') }}" 
-                           class="hover:text-pink-200 transition {{ request()->routeIs('investments.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
+                        <a href="{{ route('advance.investments.index') }}"
+                            class="hover:text-pink-200 transition {{ request()->routeIs('investments.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Investasi
                         </a>
-                        <a href="{{ route('debts.index') }}" 
-                           class="hover:text-pink-200 transition {{ request()->routeIs('debts.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
+                        <a href="{{ route('advance.debts.index') }}"
+                            class="hover:text-pink-200 transition {{ request()->routeIs('debts.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Hutang & Piutang
                         </a>
-                        <a href="{{ route('reports.index') }}" 
-                           class="hover:text-pink-200 transition {{ request()->routeIs('reports.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
+                        <a href="{{ route('advance.reports.index') }}"
+                            class="hover:text-pink-200 transition {{ request()->routeIs('reports.*') ? 'text-pink-200 font-semibold border-b-2 border-pink-200' : '' }}">
                             Laporan
                         </a>
                     </div>
@@ -72,8 +81,8 @@
                     </div>
                     <form action="{{ route('logout') }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" 
-                               class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition text-sm">
+                        <button type="submit"
+                            class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition text-sm">
                             Logout
                         </button>
                     </form>
@@ -89,7 +98,8 @@
 
     <!-- WhatsApp Button -->
     @include('components.whatsapp-button')
-    
+
     @stack('scripts')
 </body>
+
 </html>

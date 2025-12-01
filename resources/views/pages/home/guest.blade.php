@@ -1,201 +1,133 @@
-@extends('layouts.guest')
-
-@section('title', 'Home Guest - Fintrack')
-
-@section('content')
-<div class="container mx-auto px-4 py-8">
-    <!-- Alert Success -->
-    @if (session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    <!-- Welcome Message -->
-    <div class="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 text-white mb-8 card-shadow">
-        <h1 class="text-2xl font-bold mb-2">Selamat datang, {{ $username }}! 👋</h1>
-        <p class="opacity-90">Anda login sebagai <strong>Standard User</strong>. Kelola keuangan Anda dengan mudah.</p>
-    </div>
-
-    <!-- Display Uang -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-2xl card-shadow p-6">
-            <h3 class="text-gray-500 text-sm font-medium">Total Balance</h3>
-            <p class="text-3xl font-bold text-gray-800 mt-2">Rp {{ number_format($total_balance, 0, ',', '.') }}</p>
-            <p class="text-green-500 text-sm mt-2">+5.2% dari bulan lalu</p>
-        </div>
-
-        <div class="bg-white rounded-2xl card-shadow p-6">
-            <h3 class="text-gray-500 text-sm font-medium">Pemasukan Bulanan</h3>
-            <p class="text-2xl font-bold text-gray-800 mt-2">Rp {{ number_format($monthly_income, 0, ',', '.') }}</p>
-            <p class="text-green-500 text-sm mt-2">+8% dari bulan lalu</p>
-        </div>
-
-        <div class="bg-white rounded-2xl card-shadow p-6">
-            <h3 class="text-gray-500 text-sm font-medium">Pengeluaran Bulanan</h3>
-            <p class="text-2xl font-bold text-gray-800 mt-2">Rp {{ number_format($monthly_expense, 0, ',', '.') }}</p>
-            <p class="text-red-500 text-sm mt-2">+3% dari bulan lalu</p>
-        </div>
-
-        <div class="bg-white rounded-2xl card-shadow p-6">
-            <h3 class="text-gray-500 text-sm font-medium">Tabungan</h3>
-            <p class="text-2xl font-bold text-gray-800 mt-2">Rp {{ number_format($savings, 0, ',', '.') }}</p>
-            <p class="text-green-500 text-sm mt-2">+12% dari bulan lalu</p>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Grafik Pengeluaran dan Pemasukan -->
-        <div class="bg-white rounded-2xl card-shadow p-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-6">Grafik Pengeluaran & Pemasukan</h2>
-            <div class="h-80">
-                <canvas id="financeChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Eisenhower Matrix -->
-        <div class="bg-white rounded-2xl card-shadow p-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-6">Catatan Pengeluaran</h2>
-            <div class="grid grid-cols-2 gap-4">
-                <!-- Urgent & Important -->
-                <div class="space-y-3">
-                    <h3 class="font-semibold text-red-600">Penting & Mendesak</h3>
-                    @foreach ($eisenhower_data as $item)
-                        @if ($item['category'] == 'urgent_important')
-                            <div class="urgent-important bg-white p-3 rounded-lg border border-gray-200">
-                                <p class="font-medium">{{ $item['task'] }}</p>
-                                <p class="text-red-600 font-bold">Rp {{ number_format($item['amount'], 0, ',', '.') }}</p>
-                                <p class="text-xs text-gray-500">Jatuh tempo: {{ $item['due_date'] }}</p>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-
-                <!-- Not Urgent & Important -->
-                <div class="space-y-3">
-                    <h3 class="font-semibold text-blue-600">Penting & Tidak Mendesak</h3>
-                    @foreach ($eisenhower_data as $item)
-                        @if ($item['category'] == 'not_urgent_important')
-                            <div class="not-urgent-important bg-white p-3 rounded-lg border border-gray-200">
-                                <p class="font-medium">{{ $item['task'] }}</p>
-                                <p class="text-blue-600 font-bold">Rp {{ number_format($item['amount'], 0, ',', '.') }}</p>
-                                <p class="text-xs text-gray-500">Jatuh tempo: {{ $item['due_date'] }}</p>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-
-                <!-- Urgent & Not Important -->
-                <div class="space-y-3">
-                    <h3 class="font-semibold text-yellow-600">Mendesak & Tidak Penting</h3>
-                    @foreach ($eisenhower_data as $item)
-                        @if ($item['category'] == 'urgent_not_important')
-                            <div class="urgent-not-important bg-white p-3 rounded-lg border border-gray-200">
-                                <p class="font-medium">{{ $item['task'] }}</p>
-                                <p class="text-yellow-600 font-bold">Rp {{ number_format($item['amount'], 0, ',', '.') }}</p>
-                                <p class="text-xs text-gray-500">Jatuh tempo: {{ $item['due_date'] }}</p>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-
-                <!-- Not Urgent & Not Important -->
-                <div class="space-y-3">
-                    <h3 class="font-semibold text-green-600">Tidak Mendesak & Tidak Penting</h3>
-                    @foreach ($eisenhower_data as $item)
-                        @if ($item['category'] == 'not_urgent_not_important')
-                            <div class="not-urgent-not-important bg-white p-3 rounded-lg border border-gray-200">
-                                <p class="font-medium">{{ $item['task'] }}</p>
-                                <p class="text-green-600 font-bold">Rp {{ number_format($item['amount'], 0, ',', '.') }}</p>
-                                <p class="text-xs text-gray-500">Jatuh tempo: {{ $item['due_date'] }}</p>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabungan Section -->
-    <div class="bg-white rounded-2xl card-shadow p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-6">Progress Tabungan</h2>
-        <div class="flex items-center justify-between mb-4">
-            <span class="text-gray-600">Target: Rp 10.000.000</span>
-            <span class="text-blue-600 font-bold">{{ round(($savings / 10000000) * 100) }}%</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-4">
-            <div class="bg-gradient-to-r from-purple-600 to-pink-600 h-4 rounded-full" style="width: {{ ($savings / 10000000) * 100 }}%"></div>
-        </div>
-        <p class="text-gray-600 text-sm mt-2">Sisa yang dibutuhkan: Rp {{ number_format(10000000 - $savings, 0, ',', '.') }}</p>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="bg-white rounded-2xl card-shadow p-6 mt-8">
-        <h2 class="text-xl font-bold text-gray-800 mb-6">Quick Actions</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a href="#" class="bg-blue-100 text-blue-700 p-4 rounded-lg text-center hover:bg-blue-200 transition">
-                <div class="text-2xl mb-2">📈</div>
-                <p class="font-semibold">Laporan</p>
-            </a>
-            <a href="#" class="bg-green-100 text-green-700 p-4 rounded-lg text-center hover:bg-green-200 transition">
-                <div class="text-2xl mb-2">🎯</div>
-                <p class="font-semibold">Target</p>
-            </a>
-            <a href="#" class="bg-orange-100 text-orange-700 p-4 rounded-lg text-center hover:bg-orange-200 transition">
-                <div class="text-2xl mb-2">⚙️</div>
-                <p class="font-semibold">Settings</p>
-            </a>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Chart.js Implementation
-    const ctx = document.getElementById('financeChart').getContext('2d');
-    const financeChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: @json($monthly_data['labels']),
-            datasets: [{
-                    label: 'Pemasukan',
-                    data: @json($monthly_data['income']),
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                },
-                {
-                    label: 'Pengeluaran',
-                    data: @json($monthly_data['expense']),
-                    borderColor: '#ec4899',
-                    backgroundColor: 'rgba(236, 72, 153, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        drawBorder: false
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fintrack - Kelola Keuangan dengan Mudah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --gradient-start: #8B5CF6;
+            --gradient-end: #EC4899;
         }
-    });
-</script>
-@endsection
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-2xl font-bold">Fintrack</h1>
+                    <div class="hidden md:flex space-x-6">
+                        <a href="{{ route('home.guest') }}" class="hover:text-pink-200 transition">Home</a>
+                        <a href="{{ route('features') }}" class="hover:text-pink-200 transition">Fitur</a>
+                        <a href="{{ route('testimonial') }}" class="hover:text-pink-200 transition">Testimoni</a>
+                        <a href="{{ route('about') }}" class="hover:text-pink-200 transition">Tentang</a>
+                        <a href="{{ route('contact') }}" class="hover:text-pink-200 transition">Kontak</a>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    @if(session('logged_in'))
+                        <!-- Jika user sudah login -->
+                        <div class="text-right">
+                            <p class="text-pink-200 text-sm font-semibold">{{ session('username') ?? 'User' }}</p>
+                            <p class="text-pink-100 text-xs">
+                                @if(session('user_type') === 'admin')
+                                    Administrator
+                                @elseif(session('user_type') === 'advance')
+                                    Advance User
+                                @else
+                                    Standard User
+                                @endif
+                            </p>
+                        </div>
+                        <form action="{{ route('logout') }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition text-sm">
+                                Logout
+                            </button>
+                        </form>
+                    @else
+                        <!-- Jika user belum login -->
+                        <a href="{{ route('login.index') }}" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition text-sm">
+                            Login
+                        </a>
+                        <a href="{{ route('signup.index') }}" class="bg-transparent border border-white text-white px-4 py-2 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition text-sm">
+                            Daftar
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="gradient-bg text-white py-20">
+            <div class="container mx-auto px-4 text-center">
+                <h1 class="text-5xl font-bold mb-6">Kelola Keuangan dengan Lebih Bijak</h1>
+                <p class="text-xl mb-8 max-w-2xl mx-auto">
+                    Fintrack membantu Anda mengatur keuangan pribadi dan bisnis dengan fitur lengkap dan analisis mendalam.
+                </p>
+                <div class="space-x-4">
+                    <a href="{{ route('signup.index') }}" class="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition text-lg">
+                        Mulai Sekarang
+                    </a>
+                    <a href="{{ route('features') }}" class="bg-transparent border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition text-lg">
+                        Pelajari Fitur
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Preview -->
+        <section class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Fitur Unggulan</h2>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="text-center p-6">
+                        <div class="text-4xl mb-4">📊</div>
+                        <h3 class="text-xl font-semibold mb-2">Analisis Keuangan</h3>
+                        <p class="text-gray-600">Dapatkan insight lengkap tentang kondisi keuangan Anda</p>
+                    </div>
+                    <div class="text-center p-6">
+                        <div class="text-4xl mb-4">🎯</div>
+                        <h3 class="text-xl font-semibold mb-2">Prioritas Eisenhower</h3>
+                        <p class="text-gray-600">Kelola pengeluaran berdasarkan skala prioritas</p>
+                    </div>
+                    <div class="text-center p-6">
+                        <div class="text-4xl mb-4">💰</div>
+                        <h3 class="text-xl font-semibold mb-2">Manajemen Budget</h3>
+                        <p class="text-gray-600">Atur anggaran dan pantau pengeluaran dengan mudah</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="bg-gray-800 text-white py-16">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-3xl font-bold mb-4">Siap Mengelola Keuangan Anda?</h2>
+                <p class="text-xl mb-8">Bergabung dengan ribuan pengguna yang telah memperbaiki kondisi keuangan mereka</p>
+                <a href="{{ route('signup.index') }}" class="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition text-lg">
+                    Daftar Gratis
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 Fintrack. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
