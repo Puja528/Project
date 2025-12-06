@@ -14,6 +14,23 @@ class Investment extends Model
         'risk_level',
         'initial_amount',
         'current_value',
-        'start_date'
+        'start_date',
+        'user_id',
     ];
+
+    protected $dates = ['start_date'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // Accessor untuk return percentage
+    public function getReturnPercentageAttribute()
+    {
+        if ($this->initial_amount > 0) {
+            return (($this->current_value - $this->initial_amount) / $this->initial_amount) * 100;
+        }
+        return 0;
+    }
 }

@@ -11,22 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transaction', function (Blueprint $table) {
+        Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->string('judul');
-            $table->bigInteger('jumlah');
-            $table->enum('tipe', ['pemasukan', 'pengeluaran']);
-            $table->string('kategori');
-            $table->enum('prioritas', ['rendah', 'sedang', 'tinggi'])->default('sedang');
-            $table->date('tanggal');
+            $table->string('title');
+            $table->bigInteger('amount');
+            $table->enum('type', ['pemasukan', 'pengeluaran']);
+            $table->string('category');
+            $table->enum('priority', ['rendah', 'sedang', 'tinggi'])->default('sedang');
+            $table->date('date');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('transaction');
+        Schema::dropIfExists('transactions');
     }
 };

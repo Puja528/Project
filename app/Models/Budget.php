@@ -7,13 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Budget extends Model
 {
-    protected $table = 'budget';
+    protected $table = 'budgets';
 
     protected $fillable = [
         'budget_name',
         'category',
-        'period',
+        'date',
         'allocated_amount',
         'description'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

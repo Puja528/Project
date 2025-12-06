@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    protected $table = 'transaction';
+    protected $table = 'transactions';
 
     protected $fillable = [
-        'judul',
-        'jumlah',
-        'tipe',
-        'kategori',
-        'prioritas',
-        'tanggal',
+        'title',
+        'amount',
+        'type',
+        'category',
+        'priority',
+        'date',
         'user_id',
     ];
 

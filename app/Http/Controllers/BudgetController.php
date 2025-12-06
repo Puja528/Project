@@ -32,7 +32,7 @@ class BudgetController extends Controller
         }
 
         // Ambil data dari database
-        $budgets = Budget::orderBy('period', 'desc')
+        $budgets = Budget::orderBy('date', 'desc')
                         ->orderBy('created_at', 'desc')
                         ->get();
 
@@ -43,7 +43,7 @@ class BudgetController extends Controller
             'total_budget' => $budgets->sum('allocated_amount'),
             'budget_count' => $budgets->count(),
             'category_count' => $budgets->pluck('category')->unique()->count(),
-            'active_period_count' => $this->getActivePeriodCount($budgets)
+            'active_date_count' => $this->getActivedateCount($budgets)
         ];
 
         return view('pages.advance.budgets.index', compact('budgets', 'categories', 'summary'));
@@ -60,14 +60,14 @@ class BudgetController extends Controller
         return view('pages.advance.budgets.create', compact('categories'));
     }
 
-    // Method untuk menghitung periode aktif
-    private function getActivePeriodCount($budgets)
+    // Method untuk menghitung datee aktif
+    private function getActivedateCount($budgets)
     {
         $currentDate = Carbon::now();
         $currentYearMonth = $currentDate->format('Y-m');
 
         return $budgets->filter(function($budget) use ($currentYearMonth) {
-            return $budget->period >= $currentYearMonth;
+            return $budget->date >= $currentYearMonth;
         })->count();
     }
 
@@ -77,10 +77,12 @@ class BudgetController extends Controller
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
+        //dd($request->all());
+
         $request->validate([
             'budget_name' => 'required|string|max:255',
             'category' => 'required|string|in:makanan,transportasi,hiburan,kesehatan,pendidikan,belanja,tagihan,investasi,lainnya',
-            'period' => 'required|date_format:Y-m',
+            'date' => 'required|date',
             'allocated_amount' => 'required|numeric|min:1000',
             'description' => 'nullable|string|max:500'
         ]);
@@ -89,9 +91,10 @@ class BudgetController extends Controller
             Budget::create([
                 'budget_name' => $request->budget_name,
                 'category' => $request->category,
-                'period' => $request->period,
+                'date' => $request->date,
                 'allocated_amount' => $request->allocated_amount,
-                'description' => $request->description
+                'description' => $request->description,
+                'user_id' => session('user_id'),
             ]);
 
             return redirect()->route('advance.budgets.index')
@@ -110,7 +113,7 @@ class BudgetController extends Controller
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
-        $budget = Budget::findOrFail($id);
+        $budgets = Budget::findOrFail($id);
         $categories = $this->getCategories();
 
         return view('advance.budgets.edit', compact('budget', 'categories'));
@@ -125,17 +128,17 @@ class BudgetController extends Controller
         $request->validate([
             'budget_name' => 'required|string|max:255',
             'category' => 'required|string|in:makanan,transportasi,hiburan,kesehatan,pendidikan,belanja,tagihan,investasi,lainnya',
-            'period' => 'required|date_format:Y-m',
+            'date' => 'required|date',
             'allocated_amount' => 'required|numeric|min:1000',
             'description' => 'nullable|string|max:500'
         ]);
 
         try {
-            $budget = Budget::findOrFail($id);
-            $budget->update([
+            $budgets = Budget::findOrFail($id);
+            $budgets->update([
                 'budget_name' => $request->budget_name,
                 'category' => $request->category,
-                'period' => $request->period,
+                'date' => $request->date,
                 'allocated_amount' => $request->allocated_amount,
                 'description' => $request->description
             ]);
@@ -157,8 +160,8 @@ class BudgetController extends Controller
         }
 
         try {
-            $budget = Budget::findOrFail($id);
-            $budget->delete();
+            $budgets = Budget::findOrFail($id);
+            $budgets->delete();
 
             return redirect()->route('advance.budgets.index')
                             ->with('success', 'Anggaran berhasil dihapus!');

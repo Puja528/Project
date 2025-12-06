@@ -18,7 +18,7 @@ class TransactionController extends Controller
 
         // Ambil transaksi user
         $transactions = Transaction::where('user_id', $userId)
-            ->orderBy('tanggal', 'desc')
+            ->orderBy('date', 'desc')
             ->get();
 
         // Untuk menampilkan kategori dalam teks rapi
@@ -52,24 +52,25 @@ class TransactionController extends Controller
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
+        //dd($request->all());
+
         // Validasi sesuai tabel
         $request->validate([
-            'title' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0',
-            'type' => 'required|in:pemasukan,pengeluaran',
-            'category' => 'required|string',
-            'priority' => 'required|in:rendah,sedang,tinggi',
+            'title' => 'required',
+            'amount' => 'required|numeric',
+            'type' => 'required',
+            'category' => 'required',
+            'priority' => 'required',
             'date' => 'required|date',
         ]);
 
-        // Simpan ke database
         Transaction::create([
-            'judul' => $request->title,
-            'jumlah' => $request->amount,
-            'tipe' => $request->type,
-            'kategori' => $request->category,
-            'prioritas' => $request->priority,
-            'tanggal' => $request->date,
+            'title' => $request->title,
+            'amount' => $request->amount,
+            'type' => $request->type,
+            'category' => $request->category,
+            'priority' => $request->priority,
+            'date' => $request->date,
             'user_id' => session('user_id'),
         ]);
 
@@ -86,7 +87,7 @@ class TransactionController extends Controller
 
         $transaction = Transaction::where('user_id', session('user_id'))->findOrFail($id);
 
-        return view('advance.transactions.edit', compact('transaction'));
+        return view('advance.transactions.edit', compact('transactions'));
     }
 
     public function update(Request $request, $id)
@@ -102,18 +103,16 @@ class TransactionController extends Controller
             'category' => 'required|string|max:255',
             'priority' => 'required|in:rendah,sedang,tinggi',
             'date' => 'required|date',
+        ], [
+            'title.required' => 'Judul wajib diisi.',
+            'amount.required' => 'Jumlah wajib diisi.',
+            'amount.numeric' => 'Jumlah harus berupa angka.',
+            'type.required' => 'Tipe transaksi wajib dipilih.',
+            'category.required' => 'Kategori wajib dipilih.',
+            'priority.required' => 'Prioritas wajib dipilih.',
+            'date.required' => 'Tanggal wajib diisi.',
         ]);
-
-        $transaction = Transaction::where('user_id', session('user_id'))->findOrFail($id);
-
-        $transaction->update([
-            'judul' => $request->title,
-            'jumlah' => $request->amount,
-            'tipe' => $request->type,
-            'kategori' => $request->category,
-            'prioritas' => $request->priority,
-            'tanggal' => $request->date,
-        ]);
+        $transactions = Transaction::where('user_id', session('user_id'))->findOrFail($id);
 
         return redirect()->route('advance.transactions.index')
             ->with('success', 'Transaksi berhasil diperbarui.');
@@ -125,8 +124,8 @@ class TransactionController extends Controller
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
-        $transaction = Transaction::where('user_id', session('user_id'))->findOrFail($id);
-        $transaction->delete();
+        $transactions = Transaction::where('user_id', session('user_id'))->findOrFail($id);
+        $transactions->delete();
 
         return redirect()->route('advance.transactions.index')
             ->with('success', 'Transaksi berhasil dihapus.');

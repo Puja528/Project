@@ -10,7 +10,6 @@
         </a>
         <h1 class="text-3xl font-bold text-white">Tambah Anggaran Baru</h1>
     </div>
-
     @if ($errors->any())
         <div class="bg-red-900 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">
             <div class="flex items-center mb-2">
@@ -90,22 +89,21 @@
                     @enderror
                 </div>
 
-                <!-- Periode -->
+                <!-- datee -->
                 <div>
-                    <label for="period" class="block text-gray-300 mb-2 font-semibold">
-                        Periode *
+                    <label for="date" class="block text-gray-300 mb-2 font-semibold">
+                        datee *
                     </label>
-                    <input type="month"
-                           id="period"
-                           name="period"
+                    <input type="date"
+                           id="date"
+                           name="date"
                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
-                           value="{{ old('period') }}"
-                           min="{{ date('Y-m') }}"
+                           value="{{ old('date') }}"
                            required>
                     <p class="text-gray-400 text-xs mt-1">
-                        Pilih bulan dan tahun untuk periode anggaran
+                        Pilih bulan dan tahun untuk date anggaran
                     </p>
-                    @error('period')
+                    @error('date')
                         <p class="text-red-400 text-sm mt-1 flex items-center">
                             <i class="fas fa-exclamation-circle mr-1"></i>
                             {{ $message }}
@@ -181,8 +179,8 @@
                         <p id="previewCategory" class="text-white font-semibold">-</p>
                     </div>
                     <div>
-                        <p class="text-gray-400">Periode</p>
-                        <p id="previewPeriod" class="text-white font-semibold">-</p>
+                        <p class="text-gray-400">datee</p>
+                        <p id="previewdate" class="text-white font-semibold">-</p>
                     </div>
                     <div>
                         <p class="text-gray-400">Jumlah Alokasi</p>
@@ -261,16 +259,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }).format(amount);
     }
 
-    // Format period
-    function formatPeriod(period) {
-        if (!period) return '-';
-        const date = new Date(period + '-01');
-        return date.toLocaleDateString('id-ID', {
-            year: 'numeric',
-            month: 'long'
-        });
-    }
-
     // Get category name
     function getCategoryName(categoryKey) {
         const categorySelect = document.getElementById('category');
@@ -294,17 +282,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function updatePreview() {
         const budgetName = document.getElementById('budget_name').value;
         const category = document.getElementById('category').value;
-        const period = document.getElementById('period').value;
+        const date = document.getElementById('date').value;
         const allocatedAmount = document.getElementById('allocated_amount').value;
         const description = document.getElementById('description').value;
 
         // Check if all required fields have values
-        const hasRequiredFields = budgetName && category && period && allocatedAmount;
+        const hasRequiredFields = budgetName && category && date && allocatedAmount;
 
         if (hasRequiredFields) {
             document.getElementById('previewName').textContent = budgetName || '-';
             document.getElementById('previewCategory').textContent = getCategoryName(category);
-            document.getElementById('previewPeriod').textContent = formatPeriod(period);
+            document.getElementById('previewdate').textContent = formatdate(date);
             document.getElementById('previewAmount').textContent = formatRupiah(allocatedAmount);
             document.getElementById('previewDescription').textContent = description || '-';
 
@@ -324,16 +312,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Set default period to current month
-    function setDefaultPeriod() {
-        const periodInput = document.getElementById('period');
-        if (!periodInput.value) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            periodInput.value = `${year}-${month}`;
-        }
-    }
 
     // Add event listeners
     formInputs.forEach(input => {
@@ -347,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Initialize
-    setDefaultPeriod();
+    setDefaultdate();
     formatAmountInput();
     updateCharCount();
     updatePreview();

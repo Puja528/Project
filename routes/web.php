@@ -160,7 +160,7 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::get('/transactions', [TransactionController::class, 'index'])->name('advance.transactions.index');
         Route::get('/transactions/create', [TransactionController::class, 'create'])->name('advance.transactions.create');
         Route::post('/transactions', [TransactionController::class, 'store'])->name('advance.transactions.store');
-        Route::put('/transactions/{id}/edit', [TransactionController::class, 'edit'])->name('advance.transactions.edit');
+        Route::get('/transactions/{id}/edit', [TransactionController::class, 'edit'])->name('advance.transactions.edit');
         Route::put('/transactions/{id}', [TransactionController::class, 'update'])->name('advance.transactions.update');
         Route::delete('/transactions/{id}', [TransactionController::class, 'destroy'])->name('advance.transactions.destroy');
     });

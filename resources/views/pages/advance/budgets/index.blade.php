@@ -79,9 +79,9 @@
         <div class="bg-gray-800 rounded-2xl p-6 card-shadow border border-gray-700">
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="text-gray-400 text-sm font-medium">Periode Aktif</h3>
+                    <h3 class="text-gray-400 text-sm font-medium">datee Aktif</h3>
                     <p class="text-2xl font-bold text-white mt-2">
-                        {{ $budgetsCollection->pluck('period')->unique()->count() }}
+                        {{ $budgetsCollection->pluck('date')->unique()->count() }}
                     </p>
                 </div>
                 <div class="text-yellow-400">
@@ -105,7 +105,7 @@
                     @endforeach
                 </select>
 
-                <input type="month" id="periodFilter" class="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <input type="date" id="dateFilter" class="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
             </div>
         </div>
 
@@ -115,7 +115,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-3">Nama Anggaran</th>
                         <th scope="col" class="px-6 py-3">Kategori</th>
-                        <th scope="col" class="px-6 py-3">Periode</th>
+                        <th scope="col" class="px-6 py-3">datee</th>
                         <th scope="col" class="px-6 py-3">Jumlah Alokasi</th>
                         <th scope="col" class="px-6 py-3">Deskripsi</th>
                         <th scope="col" class="px-6 py-3 text-center">Aksi</th>
@@ -125,7 +125,7 @@
                     @forelse($budgets as $b)
                     <tr class="bg-gray-800 border-b border-gray-700 hover:bg-gray-750 transition duration-200 budget-row"
                         data-category="{{ $b['category'] }}"
-                        data-period="{{ $b['period'] }}">
+                        data-date="{{ $b['date'] }}">
                         <td class="px-6 py-4 font-medium text-white whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
@@ -146,7 +146,7 @@
                         </td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-700 text-gray-300">
-                                {{ \Carbon\Carbon::parse($b['period'] . '-01')->format('M Y') }}
+                                {{ \Carbon\Carbon::parse($b['date'] . '-01')->format('M Y') }}
                             </span>
                         </td>
                         <td class="px-6 py-4 font-semibold text-white">
@@ -224,18 +224,18 @@
         </div>
 
         <div class="bg-gray-800 rounded-2xl p-6 card-shadow border border-gray-700">
-            <h3 class="text-lg font-bold text-white mb-4">Anggaran per Periode</h3>
+            <h3 class="text-lg font-bold text-white mb-4">Anggaran per datee</h3>
             <div class="space-y-3">
                 @php
-                    $periodTotals = [];
+                    $dateTotals = [];
                     foreach($budgets as $b) {
-                        $periodTotals[$b['period']] = ($periodTotals[$b['period']] ?? 0) + $b['allocated_amount'];
+                        $dateTotals[$b['date']] = ($dateTotals[$b['date']] ?? 0) + $b['allocated_amount'];
                     }
-                    krsort($periodTotals);
+                    krsort($dateTotals);
                 @endphp
-                @foreach($periodTotals as $period => $total)
+                @foreach($dateTotals as $date => $total)
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-300 text-sm">{{ \Carbon\Carbon::parse($period . '-01')->format('F Y') }}</span>
+                    <span class="text-gray-300 text-sm">{{ \Carbon\Carbon::parse($date . '-01')->format('F Y') }}</span>
                     <span class="text-white font-semibold">Rp {{ number_format($total, 0, ',', '.') }}</span>
                 </div>
                 @endforeach
@@ -262,21 +262,21 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const categoryFilter = document.getElementById('categoryFilter');
-    const periodFilter = document.getElementById('periodFilter');
+    const dateFilter = document.getElementById('dateFilter');
     const budgetRows = document.querySelectorAll('.budget-row');
 
     function filterBudgets() {
         const selectedCategory = categoryFilter.value;
-        const selectedPeriod = periodFilter.value;
+        const selecteddate = dateFilter.value;
 
         budgetRows.forEach(row => {
             const rowCategory = row.getAttribute('data-category');
-            const rowPeriod = row.getAttribute('data-period');
+            const rowdate = row.getAttribute('data-date');
 
             const categoryMatch = !selectedCategory || rowCategory === selectedCategory;
-            const periodMatch = !selectedPeriod || rowPeriod === selectedPeriod;
+            const dateMatch = !selecteddate || rowdate === selecteddate;
 
-            if (categoryMatch && periodMatch) {
+            if (categoryMatch && dateMatch) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     categoryFilter.addEventListener('change', filterBudgets);
-    periodFilter.addEventListener('change', filterBudgets);
+    dateFilter.addEventListener('change', filterBudgets);
 });
 </script>
 @endsection

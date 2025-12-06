@@ -80,7 +80,7 @@
 
                                 {{-- Judul & deskripsi --}}
                                 <td class="px-6 py-4">
-                                    <div class="text-sm font-medium text-white">{{ $transaction->judul }}</div>
+                                    <div class="text-sm font-medium text-white">{{ $transaction->title }}</div>
                                     @if($transaction->description)
                                         <div class="text-sm text-gray-400">{{ $transaction->description }}</div>
                                     @endif
@@ -89,7 +89,7 @@
                                 {{-- Jumlah --}}
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium
                                             {{ $transaction->tipe === 'pemasukan' ? 'text-green-400' : 'text-red-400' }}">
-                                    Rp {{ number_format($transaction->jumlah, 0, ',', '.') }}
+                                    Rp {{ number_format($transaction->amount, 0, ',', '.') }}
                                 </td>
 
                                 <td class="px-6 py-4">
@@ -134,7 +134,7 @@
 
                                 {{-- Tanggal --}}
                                 <td class="px-6 py-4 text-sm text-gray-400">
-                                    {{ $transaction->tanggal }}
+                                    {{ $transaction->date }}
                                 </td>
 
                             </tr>

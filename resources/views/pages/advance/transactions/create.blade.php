@@ -15,6 +15,15 @@
 
             <div class="bg-gray-800 rounded-2xl p-6 card-shadow border border-gray-700">
                 <form action="{{ route('advance.transactions.store') }}" method="POST">
+                    @if ($errors->any())
+                        <div class="bg-red-600 text-white p-3 rounded-lg mb-4">
+                            <ul class="list-disc pl-5">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     @csrf
 
                     <div class="grid gap-6">
@@ -22,7 +31,7 @@
                         {{-- Judul --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Judul Transaksi *</label>
-                            <input type="text" name="judul" value="{{ old('title') }}" required
+                            <input type="text" name="title" value="{{ old('title') }}" required
                                 class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                                 placeholder="Contoh: Belanja Bulanan">
                         </div>
@@ -39,14 +48,14 @@
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Jumlah (Rp) *</label>
-                                <input type="number" name="jumlah" value="{{ old('amount') }}" required min="0"
+                                <input type="number" name="amount" value="{{ old('amount') }}" required min="0"
                                     class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                                     placeholder="0">
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Tipe *</label>
-                                <select name="tipe" required
+                                <select name="type" required
                                     class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent">
                                     <option value="">Pilih Tipe</option>
                                     <option value="pemasukan">Pemasukan</option>
@@ -59,7 +68,7 @@
                         <div class="grid md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Kategori *</label>
-                                <select name="kategori" required
+                                <select name="category" required
                                     class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent">
 
                                     <option value="">Pilih Kategori</option>
@@ -76,7 +85,7 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-300 mb-2">Prioritas *</label>
-                                <select name="prioritas" required
+                                <select name="priority" required
                                     class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent">
                                     <option value="">Pilih Prioritas</option>
                                     <option value="rendah">Rendah</option>
@@ -89,7 +98,7 @@
                         {{-- Tanggal --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Tanggal *</label>
-                            <input type="date" name="tanggal" value="{{ old('date') }}" required
+                            <input type="date" name="date" value="{{ old('date') }}" required
                                 class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent">
                         </div>
 
