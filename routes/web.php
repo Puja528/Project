@@ -12,6 +12,10 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\DebtController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportSController;
+use App\Http\Controllers\FinancialNoteController;
+use App\Http\Controllers\TransactionSController;
+use App\Http\Controllers\DebugController;
 use App\Http\Controllers\PriorityMatrixController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,13 +61,13 @@ Route::get('/testimonial', function () {
             'rating' => 5
         ],
         [
-            'name' => 'Maya Sari',
+            'name' => 'Puja Erista',
             'position' => 'Digital Marketer',
             'content' => 'Matriks Eisenhower membantu saya memprioritaskan pengeluaran dengan bijak. Sangat recommended!',
             'rating' => 5
         ],
         [
-            'name' => 'Rizki Pratama',
+            'name' => 'Wildan Fahrezy',
             'position' => 'Mahasiswa',
             'content' => 'Aplikasi yang cocok untuk anak muda yang ingin belajar mengelola keuangan. Gratis dan fiturnya lengkap!',
             'rating' => 5
@@ -118,12 +122,49 @@ Route::get('/features', function () {
     return view('pages.guest.features', compact('features'));
 })->name('features');
 
-// Protected Routes
-Route::middleware(['auth.custom'])->group(function () {
-    // Standard User Routes
-    Route::get('/home-standard', [HomeStandardController::class, 'index'])->name('home.standard');
+// Debug Routes
+Route::get('/debug/session', [DebugController::class, 'sessionInfo']);
+Route::get('/debug/transactions', [DebugController::class, 'testTransactions']);
+Route::get('/debug/financial-notes', [DebugController::class, 'testFinancialNotes']);
+Route::get('/debug/savings', [DebugController::class, 'testSavings']);
 
-    // Advance User Routes dengan prefix yang benar
+// Protected Routes untuk semua authenticated users
+Route::middleware(['auth.custom'])->group(function () {
+
+    // ==================== STANDARD USER ROUTES ====================
+    Route::prefix('standard')->middleware(['auth.custom'])->group(function () {
+        Route::get('/home', [HomeStandardController::class, 'index'])->name('home.standard');
+
+        // Transactions routes untuk standard user
+        Route::get('/transactions', [TransactionSController::class, 'index'])->name('standard.transactions.index');
+        Route::get('/transactions/create', [TransactionSController::class, 'create'])->name('standard.transactions.create');
+        Route::post('/transactions', [TransactionSController::class, 'store'])->name('standard.transactions.store');
+        Route::get('/transactions/{id}/edit', [TransactionSController::class, 'edit'])->name('standard.transactions.edit');
+        Route::put('/transactions/{id}', [TransactionSController::class, 'update'])->name('standard.transactions.update');
+        Route::delete('/transactions/{id}', [TransactionSController::class, 'destroy'])->name('standard.transactions.destroy');
+
+        // Financial Notes routes (Eisenhower Matrix)
+        Route::get('/financial-notes', [FinancialNoteController::class, 'index'])->name('standard.financial-notes.index');
+        Route::get('/financial-notes/create', [FinancialNoteController::class, 'create'])->name('standard.financial-notes.create');
+        Route::post('/financial-notes', [FinancialNoteController::class, 'store'])->name('standard.financial-notes.store');
+        Route::get('/financial-notes/{id}/edit', [FinancialNoteController::class, 'edit'])->name('standard.financial-notes.edit');
+        Route::put('/financial-notes/{id}', [FinancialNoteController::class, 'update'])->name('standard.financial-notes.update');
+        Route::delete('/financial-notes/{id}', [FinancialNoteController::class, 'destroy'])->name('standard.financial-notes.destroy');
+
+        // Savings routes untuk standard user
+        Route::get('/savings', [SavingsController::class, 'index'])->name('standard.savings.index');
+        Route::get('/savings/create', [SavingsController::class, 'create'])->name('standard.savings.create');
+        Route::post('/savings', [SavingsController::class, 'store'])->name('standard.savings.store');
+        Route::get('/savings/{id}/edit', [SavingsController::class, 'edit'])->name('standard.savings.edit');
+        Route::put('/savings/{id}', [SavingsController::class, 'update'])->name('standard.savings.update');
+        Route::delete('/savings/{id}', [SavingsController::class, 'destroy'])->name('standard.savings.destroy');
+
+        // Export basic untuk standard user
+        Route::post('/export-basic', [ReportSController::class, 'exportBasic'])->name('standard.export.basic');
+    });
+    // ==================== END STANDARD USER ROUTES ====================
+
+    // ==================== ADVANCE USER ROUTES ====================
     Route::prefix('advance')->group(function () {
         Route::get('/home', [HomeAdvanceController::class, 'index'])->name('home.advance');
 
@@ -143,9 +184,9 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::get('/investments', [InvestmentController::class, 'index'])->name('advance.investments.index');
         Route::get('/investments/create', [InvestmentController::class, 'create'])->name('advance.investments.create');
         Route::post('/investments', [InvestmentController::class, 'store'])->name('advance.investments.store');
-        Route::get('/investments/{id}/edit', [InvestmentController::class, 'edit'])->name('advance.investments.edit');
-        Route::put('/investments/{id}', [InvestmentController::class, 'update'])->name('advance.investments.update');
-        Route::delete('/investments/{id}', [InvestmentController::class, 'destroy'])->name('advance.investments.destroy');
+        Route::post('/investments/{id}/edit', [InvestmentController::class, 'edit'])->name('advance.investments.edit');
+        Route::post('/investments/{id}', [InvestmentController::class, 'update'])->name('advance.investments.update');
+        Route::post('/investments/{id}', [InvestmentController::class, 'destroy'])->name('advance.investments.destroy');
 
         // Debt routes
         Route::get('/debts', [DebtController::class, 'index'])->name('advance.debts.index');
@@ -168,17 +209,13 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::get('/transactions/{id}/edit', [TransactionController::class, 'edit'])->name('advance.transactions.edit');
         Route::put('/transactions/{id}', [TransactionController::class, 'update'])->name('advance.transactions.update');
         Route::delete('/transactions/{id}', [TransactionController::class, 'destroy'])->name('advance.transactions.destroy');
+
+        Route::post('/export-basic', [TransactionController::class, 'exportBasic'])->name('export.basic');
     });
 
-    // Common routes untuk semua user
-    Route::resource('transactions', TransactionController::class);
-    Route::resource('savings', SavingsController::class);
+    // ==================== END ADVANCE USER ROUTES ====================
 
-    // Export basic
-    Route::post('/export-basic', [ReportController::class, 'exportBasic'])->name('reports.export.basic');
-    Route::post('/export-basic', [TransactionController::class, 'exportBasic'])->name('export.basic');
-
-    // Admin Routes
+    // ==================== ADMIN ROUTES ====================
     Route::prefix('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
@@ -192,6 +229,8 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
         Route::get('/activity-logs', [AdminController::class, 'activityLogs'])->name('admin.activity-logs');
     });
+    // ==================== END ADMIN ROUTES ====================
+
 });
 
 // Logout

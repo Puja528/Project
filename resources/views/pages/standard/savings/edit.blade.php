@@ -1,71 +1,75 @@
 @extends('layouts.standard')
 
-@section('title', 'Tambah Target Tabungan')
+@section('title', 'Edit Target Tabungan')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-2xl mx-auto">
         <!-- Header -->
         <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">Tambah Target Tabungan</h1>
-            <p class="text-gray-600">Tetapkan tujuan tabungan baru</p>
+            <h1 class="text-3xl font-bold text-gray-800">Edit Target Tabungan</h1>
+            <p class="text-gray-600">Perbarui informasi target tabungan</p>
         </div>
 
         <!-- Form -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <form action="{{ route('standard.savings.store') }}" method="POST">
+            <form action="{{ route('standard.savings.update', $saving['id']) }}" method="POST">
                 @csrf
+                @method('PUT')
 
                 <div class="grid grid-cols-1 gap-6">
                     <!-- Name -->
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700">Nama Target</label>
-                        <input type="text" name="name" id="name" required
-                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                               placeholder="Contoh: Dana Darurat, Liburan, Gadget Baru, dll.">
+                        <input type="text" name="name" id="name"
+                               value="{{ $saving['name'] }}" required
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
                     </div>
 
                     <!-- Target Amount -->
                     <div>
                         <label for="target_amount" class="block text-sm font-medium text-gray-700">Target Jumlah (Rp)</label>
-                        <input type="number" name="target_amount" id="target_amount" min="0" required
-                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                               placeholder="10000000">
+                        <input type="number" name="target_amount" id="target_amount"
+                               value="{{ $saving['target_amount'] }}" min="0" required
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
                     </div>
 
                     <!-- Current Amount -->
                     <div>
                         <label for="current_amount" class="block text-sm font-medium text-gray-700">Jumlah Saat Ini (Rp)</label>
-                        <input type="number" name="current_amount" id="current_amount" min="0" required
-                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                               placeholder="0" value="0">
+                        <input type="number" name="current_amount" id="current_amount"
+                               value="{{ $saving['current_amount'] }}" min="0" required
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
                     </div>
 
                     <!-- Target Date -->
                     <div>
                         <label for="target_date" class="block text-sm font-medium text-gray-700">Target Tanggal</label>
-                        <input type="date" name="target_date" id="target_date" required
-                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                               min="{{ \Carbon\Carbon::tomorrow()->format('Y-m-d') }}">
+                        <input type="date" name="target_date" id="target_date"
+                               value="{{ $saving['target_date'] }}" required
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
                     </div>
 
                     <!-- Description -->
                     <div>
                         <label for="description" class="block text-sm font-medium text-gray-700">Deskripsi (Opsional)</label>
                         <textarea name="description" id="description" rows="3"
-                                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-                                  placeholder="Deskripsi tentang tujuan tabungan ini..."></textarea>
+                                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500">{{ $saving['description'] ?? '' }}</textarea>
                     </div>
 
-                    <!-- Progress Preview -->
-                    <div id="progress-preview" class="bg-gray-50 p-4 rounded-lg hidden">
-                        <h4 class="font-medium text-gray-700 mb-2">Preview Progress</h4>
+                    <!-- Current Progress -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-700 mb-2">Progress Saat Ini</h4>
                         <div class="flex justify-between text-sm text-gray-600 mb-2">
                             <span>Progress</span>
-                            <span id="progress-percentage">0%</span>
+                            <span>{{ number_format($saving['progress_percentage'], 1) }}%</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full" style="width: 0%"></div>
+                            <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
+                                 style="width: {{ $saving['progress_percentage'] }}%"></div>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            Rp {{ number_format($saving['current_amount'], 0, ',', '.') }} dari Rp {{ number_format($saving['target_amount'], 0, ',', '.') }}
                         </div>
                     </div>
                 </div>
@@ -78,7 +82,7 @@
                     </a>
                     <button type="submit"
                             class="gradient-bg text-white px-6 py-2 rounded-lg font-medium hover:opacity-90 transition">
-                        Simpan Target
+                        Update Target
                     </button>
                 </div>
             </form>
@@ -91,17 +95,13 @@
     function updateProgressPreview() {
         const targetAmount = parseFloat(document.getElementById('target_amount').value) || 0;
         const currentAmount = parseFloat(document.getElementById('current_amount').value) || 0;
-        const progressPreview = document.getElementById('progress-preview');
-        const progressPercentage = document.getElementById('progress-percentage');
-        const progressBar = document.getElementById('progress-bar');
+        const progressPercentage = document.querySelector('.bg-gradient-to-r');
 
         if (targetAmount > 0) {
             const percentage = Math.min((currentAmount / targetAmount) * 100, 100);
-            progressPercentage.textContent = percentage.toFixed(1) + '%';
-            progressBar.style.width = percentage + '%';
-            progressPreview.classList.remove('hidden');
-        } else {
-            progressPreview.classList.add('hidden');
+            progressPercentage.style.width = percentage + '%';
+            progressPercentage.parentElement.nextElementSibling.textContent =
+                'Rp ' + currentAmount.toLocaleString('id-ID') + ' dari Rp ' + targetAmount.toLocaleString('id-ID');
         }
     }
 

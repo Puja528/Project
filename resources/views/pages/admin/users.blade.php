@@ -6,7 +6,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-800">User Management</h1>
-        <a href="{{ route('admin.users.create') }}" 
+        <a href="{{ route('admin.users.create') }}"
            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition">
             + Add User
         </a>
@@ -101,12 +101,12 @@
                             {{ $user->created_at->format('Y-m-d') }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <a href="{{ route('admin.users.edit', $user->id) }}" 
+                            <a href="{{ route('admin.users.edit', $user->id) }}"
                                class="text-blue-600 hover:text-blue-900">Edit</a>
                             <form action="{{ route('admin.users.delete', $user->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" 
+                                <button type="submit"
                                         class="text-red-600 hover:text-red-900"
                                         onclick="return confirm('Are you sure you want to delete this user?')">
                                     Delete
