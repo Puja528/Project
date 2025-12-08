@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeAdvanceController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SignupController;
+use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\SavingsController;
 use App\Http\Controllers\BudgetController;
@@ -20,6 +21,10 @@ Route::post('/signup/auth', [SignupController::class, 'signup'])->name('signup.a
 
 Route::get('/login', [AuthController::class, 'index'])->name('login.index');
 Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
+
+// Google OAuth (tidak boleh kena middleware)
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 // Public Routes - Guest
 Route::get('/', function () {
@@ -138,9 +143,9 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::get('/investments', [InvestmentController::class, 'index'])->name('advance.investments.index');
         Route::get('/investments/create', [InvestmentController::class, 'create'])->name('advance.investments.create');
         Route::post('/investments', [InvestmentController::class, 'store'])->name('advance.investments.store');
-        Route::post('/investments/{id}/edit', [InvestmentController::class, 'edit'])->name('advance.investments.edit');
-        Route::post('/investments/{id}', [InvestmentController::class, 'update'])->name('advance.investments.update');
-        Route::post('/investments/{id}', [InvestmentController::class, 'destroy'])->name('advance.investments.destroy');
+        Route::get('/investments/{id}/edit', [InvestmentController::class, 'edit'])->name('advance.investments.edit');
+        Route::put('/investments/{id}', [InvestmentController::class, 'update'])->name('advance.investments.update');
+        Route::delete('/investments/{id}', [InvestmentController::class, 'destroy'])->name('advance.investments.destroy');
 
         // Debt routes
         Route::get('/debts', [DebtController::class, 'index'])->name('advance.debts.index');

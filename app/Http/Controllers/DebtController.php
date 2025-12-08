@@ -8,22 +8,28 @@ use Carbon\Carbon;
 
 class DebtController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $debts = Debt::orderBy('due_date', 'asc')
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(10);
+        // Ambil parameter per_page dari request (default 10)
+        $perPage = $request->get('per_page', 10);
+
+        // Query dengan sorting
+        $query = Debt::query()
+            ->orderBy('due_date', 'asc')
+            ->orderBy('created_at', 'desc');
+
+        // Jika ada auth, filter berdasarkan user
+        // if (auth()->check()) {
+        //     $query->where('user_id', auth()->id());
+        // }
+
+        // Pagination
+        $debts = $query->paginate($perPage);
 
         // Hitung summary
         $totalPiutang = Debt::where('type', 'piutang')->sum('amount');
         $totalHutang = Debt::where('type', 'hutang')->sum('amount');
         $netPosition = $totalPiutang - $totalHutang;
-
-        // Tambahkan flag is_overdue untuk setiap debt
-        $debts->getCollection()->transform(function ($debt) {
-            $debt->is_overdue = $debt->status === 'active' && Carbon::parse($debt->due_date)->isPast();
-            return $debt;
-        });
 
         return view('pages.advance.debts.index', compact('debts', 'totalPiutang', 'totalHutang', 'netPosition'));
     }
@@ -45,28 +51,42 @@ class DebtController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
+        // Hitung jumlah dengan bunga jika ada
+        $amount = $validated['amount'];
+        if ($validated['interest_rate'] > 0) {
+            $amount = $validated['amount'] + ($validated['amount'] * $validated['interest_rate'] / 100);
+        }
+
         Debt::create([
             'type' => $validated['type'],
             'person_name' => $validated['person_name'],
-            'amount' => $validated['amount'],
-            'initial_amount' => $validated['amount'], // Sama dengan amount untuk awal
+            'amount' => $amount,
+            'initial_amount' => $validated['amount'],
             'due_date' => $validated['due_date'],
             'interest_rate' => $validated['interest_rate'] ?? 0,
             'status' => $validated['status'],
             'description' => $validated['description'],
+            // Jika ada auth, tambahkan user_id
+            // 'user_id' => auth()->id(),
         ]);
 
         return redirect()->route('advance.debts.index')
-                        ->with('success', 'Data hutang/piutang berhasil ditambahkan!');
+            ->with('success', 'Data hutang/piutang berhasil ditambahkan!');
     }
 
     public function edit(Debt $debt)
     {
-        return view('advance.debts.edit', compact('debt'));
+        // Jika ada auth, tambahkan authorization
+        // $this->authorize('update', $debt);
+
+        return view('pages.advance.debts.edit', compact('debt'));
     }
 
     public function update(Request $request, Debt $debt)
     {
+        // Jika ada auth, tambahkan authorization
+        // $this->authorize('update', $debt);
+
         $validated = $request->validate([
             'type' => 'required|in:piutang,hutang',
             'person_name' => 'required|string|max:255',
@@ -77,10 +97,17 @@ class DebtController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
+        // Hitung jumlah dengan bunga jika ada
+        $amount = $validated['amount'];
+        if ($validated['interest_rate'] > 0) {
+            $amount = $validated['amount'] + ($validated['amount'] * $validated['interest_rate'] / 100);
+        }
+
         $debt->update([
             'type' => $validated['type'],
             'person_name' => $validated['person_name'],
-            'amount' => $validated['amount'],
+            'amount' => $amount,
+            'initial_amount' => $validated['amount'],
             'due_date' => $validated['due_date'],
             'interest_rate' => $validated['interest_rate'] ?? 0,
             'status' => $validated['status'],
@@ -88,14 +115,30 @@ class DebtController extends Controller
         ]);
 
         return redirect()->route('advance.debts.index')
-                        ->with('success', 'Data hutang/piutang berhasil diperbarui!');
+            ->with('success', 'Data hutang/piutang berhasil diperbarui!');
     }
 
     public function destroy(Debt $debt)
     {
-        $debt->delete();
+        try {
+            // Debug: cek apakah data ditemukan
+            if (!$debt) {
+                return redirect()->route('advance.debts.index')
+                    ->with('error', 'Data tidak ditemukan!');
+            }
 
-        return redirect()->route('advance.debts.index')
-                        ->with('success', 'Data hutang/piutang berhasil dihapus!');
+            // Simpan nama untuk flash message
+            $personName = $debt->person_name;
+
+            // Hapus data
+            $debt->delete();
+
+            return redirect()->route('advance.debts.index')
+                ->with('success', 'Data "' . $personName . '" berhasil dihapus!');
+
+        } catch (\Exception $e) {
+            return redirect()->route('advance.debts.index')
+                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+        }
     }
 }

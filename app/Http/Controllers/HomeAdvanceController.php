@@ -20,34 +20,54 @@ class HomeAdvanceController extends Controller
         $lastMonth = Carbon::now()->subMonth()->month;
         $lastMonthYear = Carbon::now()->subMonth()->year;
 
-        // 1. Total Balance (dari saldo user atau akumulasi transaksi)
-        $totalBalance = $user->balance ?? 0;
+        // 1. Total Balance
+        $totalIncome = Transaction::where('user_id', $user->id)
+            ->where('type', 'pemasukan')
+            ->sum('amount');
+
+        $totalExpense = Transaction::where('user_id', $user->id)
+            ->where('type', 'pengeluaran')
+            ->sum('amount');
+
+        $totalBalance = $totalIncome - $totalExpense;
 
         // Hitung saldo bulan lalu untuk persentase
-        $lastMonthBalance = $user->last_month_balance ?? ($totalBalance * 100 / 108.5); // Contoh perhitungan
+        $lastMonthIncome = Transaction::where('user_id', $user->id)
+            ->where('type', 'pemasukan')
+            ->whereMonth('date', $lastMonth)
+            ->whereYear('date', $lastMonthYear)
+            ->sum('amount');
+
+        $lastMonthExpense = Transaction::where('user_id', $user->id)
+            ->where('type', 'pengeluaran')
+            ->whereMonth('date', $lastMonth)
+            ->whereYear('date', $lastMonthYear)
+            ->sum('amount');
+
+        $lastMonthBalance = $lastMonthIncome - $lastMonthExpense;
 
         // 2. Pemasukan Bulan Ini
         $currentMonthIncome = Transaction::where('user_id', $user->id)
-            ->where('type', 'income')
+            ->where('type', 'pemasukan')
             ->whereMonth('date', $currentMonth)
             ->whereYear('date', $currentYear)
             ->sum('amount');
 
         $lastMonthIncome = Transaction::where('user_id', $user->id)
-            ->where('type', 'income')
+            ->where('type', 'pemasukan')
             ->whereMonth('date', $lastMonth)
             ->whereYear('date', $lastMonthYear)
             ->sum('amount');
 
         // 3. Pengeluaran Bulan Ini
         $currentMonthExpense = Transaction::where('user_id', $user->id)
-            ->where('type', 'expense')
+            ->where('type', 'pengeluaran')
             ->whereMonth('date', $currentMonth)
             ->whereYear('date', $currentYear)
             ->sum('amount');
 
         $lastMonthExpense = Transaction::where('user_id', $user->id)
-            ->where('type', 'expense')
+            ->where('type', 'pengeluaran')
             ->whereMonth('date', $lastMonth)
             ->whereYear('date', $lastMonthYear)
             ->sum('amount');
@@ -74,10 +94,12 @@ class HomeAdvanceController extends Controller
             : 0;
 
         // 6. Portfolio Investasi
-        $investments = Investment::where('user_id', $user->id)->get();
+        $investment = Investment::where('user_id', $user->id)
+            ->whereIn('type', ['saham', 'reksadana', 'deposito', 'obligasi', 'emas', 'property', 'lainnya']) // pastikan jenis yang dipakai tepat
+            ->get();
 
-        // Hitung return percentage untuk setiap investment
-        $investments->each(function ($investment) {
+        // Hitung return percentage langsung
+        $investment->each(function ($investment) {
             if ($investment->initial_amount > 0) {
                 $investment->return_percentage =
                     (($investment->current_value - $investment->initial_amount) / $investment->initial_amount) * 100;
@@ -85,11 +107,6 @@ class HomeAdvanceController extends Controller
                 $investment->return_percentage = 0;
             }
         });
-
-        // Tampilkan hanya saham dan reksadana misalnya
-        $investments = Investment::where('user_id', $user->id)
-            ->whereIn('type', ['saham', 'reksadana', 'obligasi'])
-            ->get();
 
         // 7. Data Grafik 12 Bulan Terakhir
         $monthlyData = $this->getMonthlyData($user->id);
@@ -103,10 +120,10 @@ class HomeAdvanceController extends Controller
             'expensePercentage' => $expensePercentage,
             'currentMonthProfit' => $currentMonthProfit,
             'profitPercentage' => $profitPercentage,
-            'investments' => $investments,
+            'investments' => $investment,
             'monthlyLabels' => $monthlyData['labels'],
-            'monthlyIncome' => $monthlyData['income'],
-            'monthlyExpense' => $monthlyData['expense'],
+            'monthlyIncome' => $monthlyData['pemasukan'],
+            'monthlyExpense' => $monthlyData['pengeluaran'],
         ]);
     }
 
@@ -114,29 +131,29 @@ class HomeAdvanceController extends Controller
     {
         $data = [
             'labels' => [],
-            'income' => [],
-            'expense' => []
+            'pemasukan' => [],
+            'pengeluaran' => []
         ];
 
         for ($i = 11; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
             $monthYear = $date->format('M Y');
 
-            $income = Transaction::where('user_id', $userId)
-                ->where('type', 'income')
+            $pemasukan = Transaction::where('user_id', $userId)
+                ->where('type', 'pemasukan')
                 ->whereMonth('date', $date->month)
                 ->whereYear('date', $date->year)
                 ->sum('amount');
 
-            $expense = Transaction::where('user_id', $userId)
-                ->where('type', 'expense')
+            $pengeluaran = Transaction::where('user_id', $userId)
+                ->where('type', 'pengeluaran')
                 ->whereMonth('date', $date->month)
                 ->whereYear('date', $date->year)
                 ->sum('amount');
 
             $data['labels'][] = $date->format('M');
-            $data['income'][] = $income / 1000000; // Konversi ke juta untuk grafik
-            $data['expense'][] = $expense / 1000000;
+            $data['pemasukan'][] = $pemasukan / 1000000; // Konversi ke juta untuk grafik
+            $data['pengeluaran'][] = $pengeluaran / 1000000;
         }
 
         return $data;

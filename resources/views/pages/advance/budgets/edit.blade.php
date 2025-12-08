@@ -75,16 +75,16 @@
 
                 <!-- Periode -->
                 <div>
-                    <label for="period" class="block text-gray-300 mb-2 font-semibold">
+                    <label for="date" class="block text-gray-300 mb-2 font-semibold">
                         Periode *
                     </label>
-                    <input type="month"
-                           id="period"
-                           name="period"
+                    <input type="date"
+                           id="date"
+                           name="date"
                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
-                           value="{{ old('period', $budget->period) }}"
+                           value="{{ old('date', $budget->date) }}"
                            required>
-                    @error('period')
+                    @error('date')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -155,8 +155,8 @@
             </div>
             <div>
                 <p class="text-gray-400">Periode</p>
-                <p id="previewPeriod" class="text-white font-semibold">
-                    {{ \Carbon\Carbon::parse($budget->period . '-01')->format('F Y') }}
+                <p id="previewDate" class="text-white font-semibold">
+                    {{ \Carbon\Carbon::parse($budget->date . '-01')->format('F Y') }}
                 </p>
             </div>
             <div>
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const previewFields = {
         'budget_name': 'previewName',
         'category': 'previewCategory',
-        'period': 'previewPeriod',
+        'date': 'previewDate',
         'allocated_amount': 'previewAmount',
         'description': 'previewDescription'
     };

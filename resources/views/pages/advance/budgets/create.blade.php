@@ -89,10 +89,10 @@
                     @enderror
                 </div>
 
-                <!-- datee -->
+                <!-- date -->
                 <div>
                     <label for="date" class="block text-gray-300 mb-2 font-semibold">
-                        datee *
+                        Date *
                     </label>
                     <input type="date"
                            id="date"
@@ -179,7 +179,7 @@
                         <p id="previewCategory" class="text-white font-semibold">-</p>
                     </div>
                     <div>
-                        <p class="text-gray-400">datee</p>
+                        <p class="text-gray-400">Date</p>
                         <p id="previewdate" class="text-white font-semibold">-</p>
                     </div>
                     <div>

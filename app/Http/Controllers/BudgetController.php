@@ -33,8 +33,8 @@ class BudgetController extends Controller
 
         // Ambil data dari database
         $budgets = Budget::orderBy('date', 'desc')
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         $categories = $this->getCategories();
 
@@ -66,7 +66,7 @@ class BudgetController extends Controller
         $currentDate = Carbon::now();
         $currentYearMonth = $currentDate->format('Y-m');
 
-        return $budgets->filter(function($budget) use ($currentYearMonth) {
+        return $budgets->filter(function ($budget) use ($currentYearMonth) {
             return $budget->date >= $currentYearMonth;
         })->count();
     }
@@ -98,12 +98,12 @@ class BudgetController extends Controller
             ]);
 
             return redirect()->route('advance.budgets.index')
-                            ->with('success', 'Anggaran berhasil ditambahkan!');
+                ->with('success', 'Anggaran berhasil ditambahkan!');
 
         } catch (\Exception $e) {
             return redirect()->back()
-                            ->withInput()
-                            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -113,10 +113,10 @@ class BudgetController extends Controller
             return redirect()->route('login.index')->with('error', 'Akses ditolak.');
         }
 
-        $budgets = Budget::findOrFail($id);
+        $budget = Budget::findOrFail($id); // singular
         $categories = $this->getCategories();
 
-        return view('advance.budgets.edit', compact('budget', 'categories'));
+        return view('pages.advance.budgets.edit', compact('budget', 'categories'));
     }
 
     public function update(Request $request, $id)
@@ -144,12 +144,12 @@ class BudgetController extends Controller
             ]);
 
             return redirect()->route('advance.budgets.index')
-                            ->with('success', 'Anggaran berhasil diperbarui!');
+                ->with('success', 'Anggaran berhasil diperbarui!');
 
         } catch (\Exception $e) {
             return redirect()->back()
-                            ->withInput()
-                            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -164,11 +164,11 @@ class BudgetController extends Controller
             $budgets->delete();
 
             return redirect()->route('advance.budgets.index')
-                            ->with('success', 'Anggaran berhasil dihapus!');
+                ->with('success', 'Anggaran berhasil dihapus!');
 
         } catch (\Exception $e) {
             return redirect()->back()
-                            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

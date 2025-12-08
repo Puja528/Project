@@ -35,8 +35,10 @@
                     <select id="type" name="type"
                             class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                         <option value="">Pilih Tipe</option>
-                        @foreach($types as $key => $value)
-                            <option value="{{ $key }}" {{ old('type') == $key ? 'selected' : '' }}>{{ $value }}</option>
+                        @foreach($types as $type)
+                            <option value="{{ $type }}" {{ old('type') == $type ? 'selected' : '' }}>
+                                {{ ucfirst($type) }}
+                            </option>
                         @endforeach
                     </select>
                     @error('type')
@@ -73,9 +75,11 @@
                 <!-- Jumlah Awal -->
                 <div>
                     <label for="initial_amount" class="block text-gray-300 mb-2">Jumlah Awal (Rp) *</label>
-                    <input type="number" id="initial_amount" name="initial_amount"
+                    <input type="number" id="initial_amount" name="initial_amount" min="0" step="1000"
                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                           value="{{ old('initial_amount', 10000000) }}" required>
+                           value="{{ old('initial_amount') }}"
+                           placeholder="Contoh: 10000000"
+                           required>
                     @error('initial_amount')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -84,12 +88,22 @@
                 <!-- Nilai Saat Ini -->
                 <div>
                     <label for="current_value" class="block text-gray-300 mb-2">Nilai Saat Ini (Rp) *</label>
-                    <input type="number" id="current_value" name="current_value"
+                    <input type="number" id="current_value" name="current_value" min="0" step="1000"
                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                           value="{{ old('current_value', 12500000) }}" required>
+                           value="{{ old('current_value') }}"
+                           placeholder="Contoh: 12500000"
+                           required>
                     @error('current_value')
                         <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                     @enderror
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="md:col-span-2">
+                    <label for="description" class="block text-gray-300 mb-2">Deskripsi (Opsional)</label>
+                    <textarea id="description" name="description" rows="3"
+                              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              placeholder="Tambahkan deskripsi atau catatan tentang investasi ini">{{ old('description') }}</textarea>
                 </div>
             </div>
 
@@ -104,7 +118,7 @@
             </div>
 
             <!-- Preview Data -->
-            <div id="previewSection" class="hidden mt-6 p-4 bg-gray-750 rounded-lg border border-gray-600">
+            <div id="previewSection" class="mt-6 p-4 bg-gray-750 rounded-lg border border-gray-600">
                 <h3 class="font-semibold text-gray-300 mb-4">Preview Data</h3>
                 <div class="grid md:grid-cols-2 gap-4 text-sm">
                     <div>
@@ -135,6 +149,10 @@
                         <p class="text-gray-400">Return</p>
                         <p id="previewReturn" class="text-white font-semibold">-</p>
                     </div>
+                    <div class="md:col-span-2">
+                        <p class="text-gray-400">Deskripsi</p>
+                        <p id="previewDescription" class="text-white font-semibold">-</p>
+                    </div>
                 </div>
             </div>
 
@@ -156,51 +174,64 @@
 <script>
     // Format angka ke format Rupiah
     function formatRupiah(amount) {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0
-        }).format(amount);
+        if (!amount) return 'Rp 0';
+        return 'Rp ' + parseInt(amount).toLocaleString('id-ID');
     }
 
     // Format tanggal
     function formatDate(dateString) {
-        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-        return new Date(dateString).toLocaleDateString('id-ID', options);
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('id-ID', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
     }
 
     // Hitung return persentase
     function calculateReturnPercentage(initial, current) {
-        if (!initial || !current) return 0;
-        return (((current - initial) / initial) * 100).toFixed(1);
+        if (!initial || !current || initial == 0) return 0;
+        return (((current - initial) / initial) * 100).toFixed(2);
     }
 
     // Update preview
     function updatePreview() {
         const name = document.getElementById('name').value;
-        const type = document.getElementById('type').value;
+        const typeSelect = document.getElementById('type');
+        const type = typeSelect.value;
+        const typeText = typeSelect.options[typeSelect.selectedIndex]?.text || '-';
         const riskLevel = document.getElementById('risk_level').value;
         const initialAmount = parseInt(document.getElementById('initial_amount').value) || 0;
         const currentValue = parseInt(document.getElementById('current_value').value) || 0;
         const startDate = document.getElementById('start_date').value;
+        const description = document.getElementById('description').value;
 
         const previewSection = document.getElementById('previewSection');
 
-        if (name && type && riskLevel && startDate) {
-            const returnPercentage = calculateReturnPercentage(initialAmount, currentValue);
-            const returnAmount = currentValue - initialAmount;
+        // Update preview data
+        document.getElementById('previewName').textContent = name || '-';
+        document.getElementById('previewType').textContent = typeText;
+        document.getElementById('previewRisk').textContent = riskLevel ?
+            (riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1) + ' Risk') : '-';
+        document.getElementById('previewDate').textContent = formatDate(startDate);
+        document.getElementById('previewInitial').textContent = formatRupiah(initialAmount);
+        document.getElementById('previewCurrent').textContent = formatRupiah(currentValue);
+        document.getElementById('previewDescription').textContent = description || '-';
 
-            document.getElementById('previewName').textContent = name;
-            document.getElementById('previewType').textContent = document.querySelector(`#type option[value="${type}"]`).textContent;
-            document.getElementById('previewRisk').textContent = riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1) + ' Risk';
-            document.getElementById('previewDate').textContent = formatDate(startDate);
-            document.getElementById('previewInitial').textContent = formatRupiah(initialAmount);
-            document.getElementById('previewCurrent').textContent = formatRupiah(currentValue);
-            document.getElementById('previewReturn').textContent =
-                `${returnPercentage >= 0 ? '+' : ''}${returnPercentage}% (${formatRupiah(returnAmount)})`;
-            document.getElementById('previewReturn').className =
-                `text-white font-semibold ${returnPercentage >= 0 ? 'text-green-400' : 'text-red-400'}`;
+        // Hitung dan tampilkan return
+        const returnPercentage = calculateReturnPercentage(initialAmount, currentValue);
+        const returnAmount = currentValue - initialAmount;
 
+        const returnText = `${returnPercentage >= 0 ? '+' : ''}${returnPercentage}% (${formatRupiah(returnAmount)})`;
+        document.getElementById('previewReturn').textContent = returnText;
+
+        // Warna berdasarkan return
+        const returnElement = document.getElementById('previewReturn');
+        returnElement.className = 'font-semibold ' + (returnPercentage >= 0 ? 'text-green-400' : 'text-red-400');
+
+        // Tampilkan preview section jika ada data
+        if (name || type || riskLevel || startDate || initialAmount || currentValue) {
             previewSection.classList.remove('hidden');
         } else {
             previewSection.classList.add('hidden');
@@ -217,10 +248,25 @@
         }
 
         // Add event listeners for preview
-        const formInputs = document.querySelectorAll('input, select');
+        const formInputs = document.querySelectorAll('input, select, textarea');
         formInputs.forEach(input => {
             input.addEventListener('input', updatePreview);
             input.addEventListener('change', updatePreview);
+        });
+
+        // Format input jumlah dengan auto-format
+        const amountInputs = document.querySelectorAll('input[type="number"]');
+        amountInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = parseInt(this.value.replace(/\D/g, ''));
+                }
+            });
+
+            input.addEventListener('input', function() {
+                // Hapus karakter non-digit
+                this.value = this.value.replace(/[^\d]/g, '');
+            });
         });
 
         // Initial preview update

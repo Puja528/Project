@@ -61,6 +61,12 @@
         {{-- Tabel transaksi --}}
         <div class="bg-gray-800 rounded-2xl p-6 card-shadow border border-gray-700 mb-8">
             <h2 class="text-xl font-bold text-white mb-6">Daftar Transaksi</h2>
+
+            {{-- Info jumlah data --}}
+            <div class="mb-4 text-sm text-gray-400">
+                Menampilkan {{ $transactions->firstItem() ?? 0 }} - {{ $transactions->lastItem() ?? 0 }} dari {{ $transactions->total() }} transaksi
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-700">
                     <thead>
@@ -75,7 +81,7 @@
                     </thead>
 
                     <tbody class="divide-y divide-gray-700">
-                        @foreach($transactions as $transaction)
+                        @forelse($transactions as $transaction)
                             <tr class="hover:bg-gray-750">
 
                                 {{-- Judul & deskripsi --}}
@@ -87,13 +93,14 @@
                                 </td>
 
                                 {{-- Jumlah --}}
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium
-                                            {{ $transaction->tipe === 'pemasukan' ? 'text-green-400' : 'text-red-400' }}">
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap text-sm font-medium
+                                                    {{ $transaction->type === 'pemasukan' ? 'text-green-400' : 'text-red-400' }}">
                                     Rp {{ number_format($transaction->amount, 0, ',', '.') }}
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    @if($transaction->tipe === 'pemasukan')
+                                    @if($transaction->type === 'pemasukan')
                                         <span
                                             class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-900 text-green-200">Pemasukan</span>
                                     @else
@@ -107,24 +114,27 @@
                                     {{ $categories[$transaction->category] ?? ucfirst($transaction->category) }}
                                 </td>
 
-                                {{-- Eisenhower --}}
+                                {{-- Prioritas --}}
                                 <td class="px-6 py-4">
-                                    @if($transaction->eisenhower_category === 'urgent_important')
+                                    @if($transaction->priority === 'tinggi')
                                         <span
                                             class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-900 text-red-200">
                                             Penting & Mendesak
                                         </span>
-                                    @elseif($transaction->eisenhower_category === 'not_urgent_important')
+
+                                    @elseif($transaction->priority === 'sedang')
                                         <span
                                             class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-900 text-blue-200">
                                             Penting & Tidak Mendesak
                                         </span>
-                                    @elseif($transaction->eisenhower_category === 'urgent_not_important')
+
+                                    @elseif($transaction->priority === 'rendah')
                                         <span
                                             class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-900 text-yellow-200">
                                             Mendesak & Tidak Penting
                                         </span>
-                                    @else
+
+                                    @elseif($transaction->priority === 'tidak_penting')
                                         <span
                                             class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-900 text-green-200">
                                             Tidak Mendesak & Tidak Penting
@@ -138,10 +148,23 @@
                                 </td>
 
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-400">
+                                    Tidak ada transaksi ditemukan.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
+
+            {{-- Pagination --}}
+            @if($transactions->hasPages())
+                <div class="mt-6">
+                    {{ $transactions->links() }}
+                </div>
+            @endif
         </div>
 
         {{-- Export --}}
